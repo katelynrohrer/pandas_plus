@@ -1,0 +1,4 @@
+data/
+*.csv
+.git
+__pycache__
