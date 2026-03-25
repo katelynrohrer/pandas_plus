@@ -1,17 +1,31 @@
 # pandas_plus
 
-Docker is necessary to safely and consistently limit the memory size.
+Makefile builds the project. Docker is necessary to safely and consistently limit the memory size.
 
-Build docker container:
-    `docker build -t pdp_container .`
+'make build' -- builds the Docker container \
+'make run' -- runs the program with default memory constraint of 1gb \
+'make run-full' -- runs the program without memory constraint (8gb)
 
-Run:
-    Limited to 1gb memory:
-    `docker run --rm -it -v "$PWD":/work -w /work pdp_container bash -lc 'ulimit -v 1048576; python3 -u main.py'`
-    No limit (8gb memory):
-    `docker run --rm -it -v "$PWD":/work -w /work pdp_container bash -lc 'python3 -u main.py'`
 
-(Note: I used ulimit -v rather than --memory because
-Docker kills the process immediately when --memory limit is exceeded,
+
+## Run commands manually from the makefile:
+
+Build docker container: \
+    - `docker build -t pdp_container .`
+
+Run: \
+    - Limited to 1gb memory: \
+        - `docker run --rm -it -v "$PWD":/work -w /work pdp_container bash -lc 'ulimit -v 1048576; python3 -u main.py'` \
+    - No limit (8gb memory): \
+        - `docker run --rm -it -v "$PWD":/work -w /work pdp_container bash -lc 'python3 -u main.py'` 
+
+(Note: I used ulimit -v rather than "--memory" flag because \
+Docker kills the process immediately when "--memory" limit is exceeded, \
 whereas I wanted the Pandas native error)
 
+
+Decisions I made:
+Everything is strings (simplifies memory calculations)
+Pandas usage is assumed to be larger than it may actually be (attempt to estimate to prevent error)
+There is no cache to read files from, the only options are disk or memory
+Docker uses the main environment for disk (to prevent significantly large docker containers)
