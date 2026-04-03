@@ -2,10 +2,13 @@
 import baseline
 import main as m
 
+import io
 import os
 import sys
 import time
 import psutil
+from contextlib import redirect_stdout
+
 
 
 def track(func):
@@ -14,7 +17,9 @@ def track(func):
     io_before = process.io_counters()
     start_time = time.time()
 
-    func()
+    stdout_buffer = io.StringIO()
+    with redirect_stdout(stdout_buffer):
+        func()
 
     io_after = process.io_counters()
     end_time = time.time()
@@ -29,18 +34,19 @@ def track(func):
 
 def main(filename):
     if filename == "main":
-        track(m.main)
+        start, step = m.make_stepper()
     elif filename == "baseline":
         start, step = baseline.make_stepper()
-        start()
-        while True:
-            try:
-                track(step)
-            except StopIteration:
-                break
     else:
         print("Usage: python3 track_metrics.py [main|baseline]")
+        return
 
+    start()
+    while True:
+        try:
+            track(step)
+        except StopIteration:
+            break
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:

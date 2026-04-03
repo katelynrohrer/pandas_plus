@@ -1,0 +1,24 @@
+Time: 0.05s
+RSS: 79.71 MB
+Read bytes: 0.02 MB
+Write bytes: 0.00 MB
+
+Time: 2.83s
+RSS: 108.35 MB
+Read bytes: 0.00 MB
+Write bytes: 0.00 MB
+
+Time: 6.08s
+RSS: 159.62 MB
+Read bytes: 0.00 MB
+Write bytes: 0.00 MB
+
+Time: 134.17s
+RSS: 175.29 MB
+Read bytes: 0.00 MB
+Write bytes: 0.00 MB
+
+Time: 79.17s
+RSS: 402.32 MB
+Read bytes: 0.00 MB
+Write bytes: 0.00 MB
