@@ -11,10 +11,11 @@ def to_mb(bytes_val):
 
 DATA_FILES = [
     "data/small_song.csv",
-    "data/small_la_crime.csv",
+    "data/small_crime.csv",
+    "data/medium_la_crime.csv", # unreliably small enough
     "data/medium_song.csv",
-    "data/large_la_crime.csv",
     "data/large_song.csv",
+    "data/large_la_crime.csv"
 ]
 
 

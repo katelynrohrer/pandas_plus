@@ -9,11 +9,15 @@ os.makedirs(DATA_DIR, exist_ok=True)
 path = kagglehub.dataset_download("mexwell/10k-song-dataset", path=DATA_DIR)
 print("Path to dataset files:", path)
 
-path = kagglehub.dataset_download("abdullahmazari/crime-data-of-los-angeles-from-2020-to-2025", path=DATA_DIR)
+path = kagglehub.dataset_download("sohier/crime-in-baltimore")
 print("Path to dataset files:", path)
 
 
 # medium files
+
+path = kagglehub.dataset_download("abdullahmazari/crime-data-of-los-angeles-from-2020-to-2025", path=DATA_DIR)
+print("Path to dataset files:", path)
+
 path = kagglehub.dataset_download("serkantysz/550k-spotify-songs-audio-lyrics-and-genres", path=DATA_DIR)
 print("Path to dataset files:", path)
 

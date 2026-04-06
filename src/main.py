@@ -98,13 +98,14 @@ class PDplus:
         return pd.read_pickle(self.chunks[idx])
 
     def insert(self, row: Dict):
-        if set(row.keys) != set(self.columns):
+        if set(row.keys()) != set(self.columns()):
             raise KeyError("New row must have the same columns as the rest of the df")
 
         # inserting row into page
         last_page = self._load(-1)
         if not self.page_is_full(last_page):
             last_page.loc[len(last_page)] = row
+            pd.to_pickle(last_page, self.chunks[-1])
             return
 
         # making a new page for the row

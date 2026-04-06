@@ -32,3 +32,9 @@ track-baseline:
 
 track-baseline-full:
 	docker run --rm -it -v "$$(pwd)":/work -w /work $(IMAGE_NAME) bash -lc 'python3 -u src/track_metrics.py baseline'
+
+test-main:
+	docker run --rm -it -v "$$(pwd)":/work -w /work $(IMAGE_NAME) bash -lc 'ulimit -v 1048576 && pytest -v tests/test_main.py'
+
+test-baseline:
+	docker run --rm -it -v "$$(pwd)":/work -w /work $(IMAGE_NAME) bash -lc 'ulimit -v 1048576 && pytest -v tests/test_baseline.py'

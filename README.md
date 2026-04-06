@@ -29,3 +29,6 @@ Everything is strings (simplifies memory calculations)
 Pandas usage is assumed to be larger than it may actually be (attempt to estimate to prevent error)
 There is no cache to read files from, the only options are disk or memory
 Docker uses the main environment for disk (to prevent significantly large docker containers)
+
+There's a lot of overhead in pandas structure, I overestimated on how much space a file would need to avoid crashes
+E.g. the 200MB file is just on the cusp of sometimes too big, 800MB is definitely too big
