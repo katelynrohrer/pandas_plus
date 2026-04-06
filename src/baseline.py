@@ -1,7 +1,5 @@
 
 import os
-import psutil
-import resource
 
 import pandas as pd
 import utils
@@ -20,36 +18,6 @@ def make_dfs(file):
         return dfs
 
 
-def make_stepper():
-    gen = None
-
-    def start():
-        nonlocal gen
-        gen = step_files()
-
-    def step():
-        nonlocal gen
-        if gen is None:
-            raise StopIteration
-        return next(gen)
-
-    return start, step
-
-
-def step_files():
-    files = [
-        "data/small_song.csv",
-        "data/small_la_crime.csv",
-        "data/medium_song.csv",
-        "data/large_la_crime.csv",
-        "data/large_song.csv",
-    ]
-
-    for file in files:
-        file_main(file)
-        yield file
-
-
 def file_main(file):
     dfs = make_dfs(file)
     for df in dfs:
@@ -57,11 +25,12 @@ def file_main(file):
     del dfs
 
 
+def make_stepper():
+    return utils.make_stepper(file_main)
+
+
 def main():
-    for file in ["data/small_song.csv", "data/small_la_crime.csv", "data/medium_song.csv", "data/large_la_crime.csv", "data/large_song.csv"]:
-        print(file)
-        file_main(file)
-        print()
+    utils.run_all(file_main)
 
 
 if __name__ == "__main__":

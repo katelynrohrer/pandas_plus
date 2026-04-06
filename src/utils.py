@@ -9,6 +9,50 @@ def to_mb(bytes_val):
     return round(bytes_val / (1024 * 1024))
 
 
+DATA_FILES = [
+    "data/small_song.csv",
+    "data/small_la_crime.csv",
+    "data/medium_song.csv",
+    "data/large_la_crime.csv",
+    "data/large_song.csv",
+]
+
+
+def iter_files(file_main, files=None):
+    if files is None:
+        files = DATA_FILES
+
+    for file in files:
+        file_main(file)
+        yield file
+
+
+def make_stepper(file_main, files=None):
+    gen = None
+
+    def start():
+        nonlocal gen
+        gen = iter_files(file_main, files)
+
+    def step():
+        nonlocal gen
+        if gen is None:
+            raise StopIteration
+        return next(gen)
+
+    return start, step
+
+
+def run_all(file_main, files=None):
+    if files is None:
+        files = DATA_FILES
+
+    for file in files:
+        print(file)
+        file_main(file)
+        print()
+
+
 def get_size_limit():
     mem, _ = resource.getrlimit(resource.RLIMIT_AS)  # virtual limits (e.g. the 1gb limit)
 
