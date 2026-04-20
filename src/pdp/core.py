@@ -1,5 +1,6 @@
 import os
 from typing import Dict
+from bisect import bisect_right
 import pandas as pd
 
 from . import utils
@@ -63,6 +64,16 @@ class PDplus:
     def _sort_df(self, df):
         return build.sort_df(self, df)
 
+    def _insert_sorted_row(self, df, row):
+        col = self.columns[0]
+        values = df[col].tolist()
+        insert_at = bisect_right(values, row[col])
+
+        top = df.iloc[:insert_at]
+        bottom = df.iloc[insert_at:]
+        new_row_df = pd.DataFrame([row], columns=self.columns)
+        return pd.concat([top, new_row_df, bottom], ignore_index=True)
+
     def _page_bounds(self, df):
         return page.page_bounds(self, df)
 
@@ -81,8 +92,9 @@ class PDplus:
     def _rewrite_page(self, idx, df):
         return page.rewrite_page(self, idx, df)
 
-    def _split_page(self, idx):
-        return page.split_page(self, idx)
+    def _split_page(self, idx, df):
+        print("splitting page")
+        return page.split_page(self, idx, df)
 
     def _load(self, idx):
         return page.load_page(self, idx)
@@ -101,14 +113,15 @@ class PDplus:
 
         page_idx = self._find_page_index(row_value)
         page_df = self._load(page_idx)
-        page_df.loc[len(page_df)] = row
-        page_df = self._sort_df(page_df)
-        self._rewrite_page(page_idx, page_df)
+        page_df = self._insert_sorted_row(page_df, row)
 
         if self.page_is_full(page_df):
-            self._split_page(page_idx)
+            print("full page detected!")
+            self._split_page(page_idx, page_df)
         else:
-            self._write_index(self.chunks)
+            self._rewrite_page(page_idx, page_df)
+
+        self._write_index(self.chunks)
 
 
     def page_is_full(self, df):

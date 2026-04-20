@@ -95,25 +95,23 @@ def rewrite_page(pdp, idx, df):
         os.remove(old_path)
 
 
-def split_page(pdp, idx):
-    df = pdp._load(idx)
+def split_page(pdp, idx, df):
     col = pdp.columns[0]
-    df = pdp._sort_df(df)
+    df = pdp._sort_df(df).reset_index(drop=True)
 
     mid = len(df) // 2
     left = df.iloc[:mid].reset_index(drop=True)
     right = df.iloc[mid:].reset_index(drop=True)
+    old_path = pdp.chunks[idx]["path"]
 
-    while not left.empty and not right.empty \
-            and left.iloc[-1][col] == right.iloc[0][col]:
-
+    while not left.empty and not right.empty and left.iloc[-1][col] == right.iloc[0][col]:
         dup_value = right.iloc[0][col]
         dup_rows = right[right[col] == dup_value].reset_index(drop=True)
         right = right[right[col] != dup_value].reset_index(drop=True)
+        left_last = left.iloc[-1][col] if not left.empty else None
 
-        if left.iloc[-1][col] == dup_value:
+        if left_last == dup_value:
             center = dup_rows
-            old_path = pdp.chunks[idx]["path"]
 
             left_page = pdp._write_page(left)
             center_page = pdp._write_page(center)
@@ -127,19 +125,19 @@ def split_page(pdp, idx):
 
             pdp.chunks[idx + 1:idx + 1] = inserts
 
-            if os.path.exists(old_path):
+            if old_path != left_page["path"] and os.path.exists(old_path):
                 os.remove(old_path)
 
+            pdp._remove_empty_pages()
             return
 
-    old_path = pdp.chunks[idx]["path"]
     left_page = pdp._write_page(left)
     right_page = pdp._write_page(right)
 
     pdp.chunks[idx] = left_page
     pdp.chunks.insert(idx + 1, right_page)
 
-    if os.path.exists(old_path):
+    if old_path != left_page["path"] and os.path.exists(old_path):
         os.remove(old_path)
 
     pdp._remove_empty_pages()

@@ -95,7 +95,7 @@ def pages_from_buckets(pdp):
                     break
 
                 before = len(pdp.chunks)
-                pdp._split_page(page_idx)
+                pdp._split_page(page_idx, current_df)
                 after = len(pdp.chunks)
                 offset += after - before
 
