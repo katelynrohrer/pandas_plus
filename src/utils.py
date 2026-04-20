@@ -15,7 +15,7 @@ DATA_FILES = [
     "data/medium_la_crime.csv", # unreliably small enough
     "data/medium_song.csv",
     "data/large_song.csv",
-    "data/large_la_crime.csv"
+    # "data/large_la_crime.csv" # TODO too big for casual testing
 ]
 
 
@@ -61,14 +61,14 @@ def get_size_limit():
         # in real use case, this would always be used by default
         mem = psutil.virtual_memory().available # physical limits (e.g container capacity)
 
-    size_limit = mem / 5  # pandas typically needs 2-5x the space of the file. we're being conservative here
+    size_limit = mem / 15  # pandas typically needs 2-5x the space of the file. we're being conservative here
 
     return size_limit
 
 def estimate_row_size(file, sample=1000):
     sample_df = pd.read_csv(file, dtype=str, nrows=sample)
     bytes_per_row = sample_df.memory_usage(deep=True).sum() / len(sample_df)
-    return bytes_per_row * 3 # give an extra 3x buffer
+    return bytes_per_row
 
 
 

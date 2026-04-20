@@ -1,6 +1,6 @@
 
 import baseline
-import main as m
+import pdp
 
 import io
 import os
@@ -33,12 +33,12 @@ def track(func):
     print()
 
 def main(filename):
-    if filename == "main":
-        start, step = m.make_stepper()
+    if filename == "pdp":
+        start, step = pdp.make_stepper()
     elif filename == "baseline":
         start, step = baseline.make_stepper()
     else:
-        print("Usage: python3 track_metrics.py [main|baseline]")
+        print("Usage: python3 track_metrics.py [pdp|baseline]")
         return
 
     start()
@@ -50,7 +50,7 @@ def main(filename):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usage: python3 track_metrics.py [main|baseline]")
+        print("Usage: python3 track_metrics.py [pdp|baseline]")
         sys.exit(1)
 
     file = sys.argv[1]
