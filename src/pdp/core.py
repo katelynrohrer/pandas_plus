@@ -1,12 +1,13 @@
+
 import os
 from typing import Dict
-from bisect import bisect_right
 import pandas as pd
 
 from . import utils
 from . import build
 from . import page
 from . import cache
+from . import operations
 
 
 class PDplus:
@@ -32,10 +33,7 @@ class PDplus:
         self.columns = pd.read_csv(self.file, nrows=0).columns
         self.chunks = self.read()
 
-
-    def clear_old_cache(self):
-        return cache.clear_old_cache(self)
-
+#### PUBLIC API ####
 
     def read(self):
         pages = cache.load_valid_index(self)
@@ -43,17 +41,30 @@ class PDplus:
             return pages
 
         cache.clear_current_cache(self)
-        self.clear_old_cache()
+        self._clear_old_cache()
 
         pages = build.build_pages(self)
         self._write_index(pages)
         return pages
 
-    def _remove_empty_pages(self):
-        return page.remove_empty_pages(self)
+    def insert(self, row: Dict):
+        return operations.insert(self, row)
 
-    def _bucket_key(self, value):
-        return build.bucket_key(value)
+    def delete(self, key):
+        return operations.delete(self, key)
+
+    def commit_cache(self):
+        return cache.commit_cache(self)
+
+    def abort_cache(self):
+        return cache.abort_cache(self)
+
+    def print(self):
+        for page in self.chunks:
+            df = pd.read_pickle(page["path"])
+            print(df)
+
+#### HELPER FUNCTIONS ####
 
     def _pages_from_buckets(self):
         return build.pages_from_buckets(self)
@@ -64,16 +75,6 @@ class PDplus:
     def _sort_df(self, df):
         return build.sort_df(self, df)
 
-    def _insert_sorted_row(self, df, row):
-        col = self.columns[0]
-        values = df[col].tolist()
-        insert_at = bisect_right(values, row[col])
-
-        top = df.iloc[:insert_at]
-        bottom = df.iloc[insert_at:]
-        new_row_df = pd.DataFrame([row], columns=self.columns)
-        return pd.concat([top, new_row_df, bottom], ignore_index=True)
-
     def _page_bounds(self, df):
         return page.page_bounds(self, df)
 
@@ -82,6 +83,19 @@ class PDplus:
 
     def _write_page(self, df, idx=None):
         return page.write_page(self, df, idx)
+
+    def _split_page(self, idx, df):
+        print("splitting page")
+        return page.split_page(self, idx, df)
+
+    def _insert_sorted_row(self, df, row):
+        return operations._insert_sorted_row(self, df, row)
+
+    def _refresh_page_index(self, page_idx, page_df):
+        return operations._refresh_page_index(self, page_idx, page_df)
+
+    def _clear_old_cache(self):
+        return cache.clear_old_cache(self)
 
     def _write_index(self, pages):
         return cache.write_index(self, pages)
@@ -92,65 +106,11 @@ class PDplus:
     def _rewrite_page(self, idx, df):
         return page.rewrite_page(self, idx, df)
 
-    def _split_page(self, idx, df):
-        print("splitting page")
-        return page.split_page(self, idx, df)
-
-    def _load(self, idx):
+    def _load_page(self, idx):
         return page.load_page(self, idx)
 
-    def insert(self, row: Dict):
-        if set(row.keys()) != set(self.columns):
-            raise KeyError("New row must have the same columns as the rest of the df")
+    def _remove_empty_pages(self):
+        return page.remove_empty_pages(self)
 
-        row_value = row[self.columns[0]]
-
-        if not self.chunks:
-            new_page = self._write_page(pd.DataFrame([row], columns=self.columns))
-            self.chunks.append(new_page)
-            self._write_index(self.chunks)
-            return
-
-        page_idx = self._find_page_index(row_value)
-        page_df = self._load(page_idx)
-        page_df = self._insert_sorted_row(page_df, row)
-
-        if self.page_is_full(page_df):
-            print("full page detected!")
-            self._split_page(page_idx, page_df)
-        else:
-            self._rewrite_page(page_idx, page_df)
-
-        self._write_index(self.chunks)
-
-
-    def page_is_full(self, df):
+    def _page_is_full(self, df):
         return page.page_is_full(self, df)
-
-
-    def commit(self):
-        first_page = True
-        for page in self.chunks:
-            df = pd.read_pickle(page["path"])
-            df.to_csv(
-                self.file,
-                mode="w" if first_page else "a",
-                index=False,
-                header=first_page,
-            )
-            first_page = False
-
-
-
-    def abort(self):
-        return cache.abort_cache(self)
-
-
-    def close(self):
-        self.abort()
-
-
-    def print(self):
-        for page in self.chunks:
-            df = pd.read_pickle(page["path"])
-            print(df)

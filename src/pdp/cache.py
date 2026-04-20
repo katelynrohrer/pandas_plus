@@ -1,5 +1,22 @@
+
 import os
 import json
+import pandas as pd
+
+
+def load_valid_index(pdp):
+    if not os.path.exists(pdp.index):
+        return None
+
+    with open(pdp.index, "r") as f:
+        pages = json.load(f)
+
+    if all(os.path.exists(page["path"]) for page in pages):
+        print("Found cache!")
+        return pages
+
+    print("Rebuilding cache")
+    return None
 
 
 def write_index(pdp, pages):
@@ -34,41 +51,6 @@ def clear_old_cache(pdp):
             if not os.listdir(path):
                 os.rmdir(path)
 
-
-def abort_cache(pdp):
-    # delete all pages in the cache, storage saver
-    # use when done working on files in a session
-    # -- not recommended to call on each run --
-    if os.path.exists(pdp.index):
-        with open(pdp.index, "r") as f:
-            pages = json.load(f)
-
-        for page in pages:
-            path_to_remove = page["path"] if isinstance(page, dict) else page
-            if os.path.exists(path_to_remove):
-                os.remove(path_to_remove)
-
-        os.remove(pdp.index)
-
-    if os.path.exists(pdp.page_folder) and not os.listdir(pdp.page_folder):
-        os.rmdir(pdp.page_folder)
-
-
-def load_valid_index(pdp):
-    if not os.path.exists(pdp.index):
-        return None
-
-    with open(pdp.index, "r") as f:
-        pages = json.load(f)
-
-    if all(os.path.exists(page["path"]) for page in pages):
-        print("Found cache!")
-        return pages
-
-    print("Rebuilding cache")
-    return None
-
-
 def clear_current_cache(pdp):
     if not os.path.exists(pdp.page_folder):
         return
@@ -96,3 +78,33 @@ def clear_current_cache(pdp):
                 for directory in dirs:
                     os.rmdir(os.path.join(root, directory))
             os.rmdir(path)
+
+def commit_cache(pdp):
+    first_page = True
+    for page in pdp.chunks:
+        df = pd.read_pickle(page["path"])
+        df.to_csv(
+            pdp.file,
+            mode="w" if first_page else "a",
+            index=False,
+            header=first_page,
+        )
+        first_page = False
+
+def abort_cache(pdp):
+    # delete all pages in the cache, storage saver
+    # use when done working on files in a session
+    # -- not recommended to call on each run --
+    if os.path.exists(pdp.index):
+        with open(pdp.index, "r") as f:
+            pages = json.load(f)
+
+        for page in pages:
+            path_to_remove = page["path"] if isinstance(page, dict) else page
+            if os.path.exists(path_to_remove):
+                os.remove(path_to_remove)
+
+        os.remove(pdp.index)
+
+    if os.path.exists(pdp.page_folder) and not os.listdir(pdp.page_folder):
+        os.rmdir(pdp.page_folder)
