@@ -16,7 +16,7 @@ def page_bounds(pdp, df):
 def find_page_index(pdp, value):
     text = "" if pd.isna(value) else str(value)
 
-    for i, page in enumerate(pdp.chunks):
+    for i, page in enumerate(pdp.pages):
         if page["first"] == "" and page["last"] == "":
             continue
         if page["first"] <= text <= page["last"]:
@@ -24,23 +24,23 @@ def find_page_index(pdp, value):
 
     first_char = text[:1].upper()
 
-    for i, page in enumerate(pdp.chunks):
+    for i, page in enumerate(pdp.pages):
         if page["first"] == "" and page["last"] == "":
             page_name = os.path.basename(page["path"])
             if page_name.startswith(f"page_{first_char}"):
                 return i
 
-    for i, page in enumerate(pdp.chunks):
+    for i, page in enumerate(pdp.pages):
         if page["first"] == "" and page["last"] == "":
             page_name = os.path.basename(page["path"])
             if page_name.startswith("page_"):
                 return i
 
-    for i, page in enumerate(pdp.chunks):
+    for i, page in enumerate(pdp.pages):
         if text < page["first"]:
             return i
 
-    return len(pdp.chunks) - 1
+    return len(pdp.pages) - 1
 
 
 def page_filename(pdp, df):
@@ -68,17 +68,17 @@ def write_page(pdp, df, idx=None):
 
 
 def rewrite_page(pdp, idx, df):
-    old_path = pdp.chunks[idx]["path"]
+    old_path = pdp.pages[idx]["path"]
 
     if df.empty:
         if os.path.exists(old_path):
             os.remove(old_path)
-        del pdp.chunks[idx]
-        pdp._write_index(pdp.chunks)
+        del pdp.pages[idx]
+        pdp._write_index(pdp.pages)
         return
 
     new_page = pdp._write_page(df)
-    pdp.chunks[idx] = new_page
+    pdp.pages[idx] = new_page
 
     if old_path != new_page["path"] and os.path.exists(old_path):
         os.remove(old_path)
@@ -91,7 +91,7 @@ def split_page(pdp, idx, df):
     mid = len(df) // 2
     left = df.iloc[:mid].reset_index(drop=True)
     right = df.iloc[mid:].reset_index(drop=True)
-    old_path = pdp.chunks[idx]["path"]
+    old_path = pdp.pages[idx]["path"]
 
     while not left.empty and not right.empty and left.iloc[-1][col] == right.iloc[0][col]:
         dup_value = right.iloc[0][col]
@@ -106,13 +106,13 @@ def split_page(pdp, idx, df):
             center_page = pdp._write_page(center)
             right_page = pdp._write_page(right) if not right.empty else None
 
-            pdp.chunks[idx] = left_page
+            pdp.pages[idx] = left_page
             inserts = [center_page]
 
             if right_page is not None:
                 inserts.append(right_page)
 
-            pdp.chunks[idx + 1:idx + 1] = inserts
+            pdp.pages[idx + 1:idx + 1] = inserts
 
             if old_path != left_page["path"] and os.path.exists(old_path):
                 os.remove(old_path)
@@ -123,8 +123,8 @@ def split_page(pdp, idx, df):
     left_page = pdp._write_page(left)
     right_page = pdp._write_page(right)
 
-    pdp.chunks[idx] = left_page
-    pdp.chunks.insert(idx + 1, right_page)
+    pdp.pages[idx] = left_page
+    pdp.pages.insert(idx + 1, right_page)
 
     if old_path != left_page["path"] and os.path.exists(old_path):
         os.remove(old_path)
@@ -133,18 +133,18 @@ def split_page(pdp, idx, df):
 
 
 def remove_empty_pages(pdp):
-    new_chunks = []
+    new_pages = []
 
-    for page in pdp.chunks:
+    for page in pdp.pages:
         df = pd.read_pickle(page["path"])
         if df.empty:
             if os.path.exists(page["path"]):
                 os.remove(page["path"])
             continue
-        new_chunks.append(page)
+        new_pages.append(page)
 
-    pdp.chunks = new_chunks
-    pdp._write_index(pdp.chunks)
+    pdp.pages = new_pages
+    pdp._write_index(pdp.pages)
 
 
 def write_index(pdp, pages):
@@ -153,5 +153,5 @@ def write_index(pdp, pages):
 
 
 def load_page(pdp, idx):
-    return pd.read_pickle(pdp.chunks[idx]["path"])
+    return pd.read_pickle(pdp.pages[idx]["path"])
 

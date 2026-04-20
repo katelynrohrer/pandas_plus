@@ -17,8 +17,8 @@ def pages_from_buckets(pdp):
         page = pdp._write_page(empty_df, idx=letter)
         pages.append(page)
 
-    pdp.chunks = pages
-    pdp._write_index(pdp.chunks)
+    pdp.pages = pages
+    pdp._write_index(pdp.pages)
 
     key_col = pdp.columns[0]
     chunk_num = 0
@@ -50,19 +50,19 @@ def pages_from_buckets(pdp):
         for original_idx in touched_pages:
             page_idx = original_idx + offset
 
-            while page_idx < len(pdp.chunks):
+            while page_idx < len(pdp.pages):
                 current_df = pdp._load_page(page_idx)
                 if not pdp._page_is_full(current_df):
                     break
 
-                before = len(pdp.chunks)
+                before = len(pdp.pages)
                 pdp._split_page(page_idx, current_df)
-                after = len(pdp.chunks)
+                after = len(pdp.pages)
                 offset += after - before
 
     pdp._remove_empty_pages()
-    pdp._write_index(pdp.chunks)
-    return pdp.chunks
+    pdp._write_index(pdp.pages)
+    return pdp.pages
 
 
 def pages_from_df(pdp, df):
@@ -84,11 +84,11 @@ def find_page_index_binary(pdp, value):
     target = "" if pd.isna(value) else str(value)
 
     left = 0
-    right = len(pdp.chunks) - 1
+    right = len(pdp.pages) - 1
 
     while left <= right:
         mid = (left + right) // 2
-        page = pdp.chunks[mid]
+        page = pdp.pages[mid]
 
         first = str(page.get("first", ""))
         last = str(page.get("last", ""))
@@ -102,8 +102,8 @@ def find_page_index_binary(pdp, value):
 
     if left <= 0:
         return 0
-    if left >= len(pdp.chunks):
-        return len(pdp.chunks) - 1
+    if left >= len(pdp.pages):
+        return len(pdp.pages) - 1
     return left
 
 

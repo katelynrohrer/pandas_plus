@@ -81,7 +81,7 @@ def clear_current_cache(pdp):
 
 def commit_cache(pdp):
     first_page = True
-    for page in pdp.chunks:
+    for page in pdp.pages:
         df = pd.read_pickle(page["path"])
         df.to_csv(
             pdp.file,

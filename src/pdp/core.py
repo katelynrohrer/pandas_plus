@@ -22,7 +22,7 @@ class PDplus:
 
         self.can_fit_in_mem = self.filesize < utils.get_size_limit()
 
-        self.cache_root = os.path.join("tmp", "chunks")
+        self.cache_root = os.path.join("tmp", "pages")
         os.makedirs(self.cache_root, exist_ok=True)
 
         self.page_key = f"{self.basename}_{self.filesize}_{self.page_row_capacity}"
@@ -31,7 +31,7 @@ class PDplus:
         os.makedirs(self.page_folder, exist_ok=True)
 
         self.columns = pd.read_csv(self.file, nrows=0).columns
-        self.chunks = self.read()
+        self.pages = self.read()
 
 #### PUBLIC API ####
 
@@ -60,7 +60,7 @@ class PDplus:
         return cache.abort_cache(self)
 
     def print(self):
-        for page in self.chunks:
+        for page in self.pages:
             df = pd.read_pickle(page["path"])
             print(df)
 
