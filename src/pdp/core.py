@@ -11,8 +11,7 @@ from . import operations
 
 
 class PDplus:
-    # TODO add a sort option and a sort by col
-    def __init__(self, filepath):
+    def __init__(self, filepath, sort=True, sort_col=None):
         self.file = filepath
         self.basename = os.path.basename(filepath).rsplit(".")[0]
         self.filesize = os.path.getsize(filepath)
@@ -30,7 +29,17 @@ class PDplus:
         self.index = os.path.join(self.page_folder, "index.json")
         os.makedirs(self.page_folder, exist_ok=True)
 
-        self.columns = pd.read_csv(self.file, nrows=0).columns
+        self.columns = list(pd.read_csv(self.file, nrows=0).columns)
+
+        if sort and sort_col:
+            if sort_col not in self.columns:
+                raise ValueError(f"column to be sorted on must exist within df.\ncurrent columns:\n{self.columns}")
+            self.sort_by = sort_col
+        elif sort and not sort_col:
+            self.sort_by = self.columns[0]
+        else:
+            self.sort_by = None
+
         self.pages = self.read()
 
 #### PUBLIC API ####
@@ -50,8 +59,8 @@ class PDplus:
     def insert(self, row: Dict):
         return operations.insert(self, row)
 
-    def delete(self, key):
-        return operations.delete(self, key)
+    def delete(self, key, single=True, key_col=None):
+        return operations.delete(self, key, single, key_col)
 
     def commit_cache(self):
         return cache.commit_cache(self)
@@ -102,6 +111,9 @@ class PDplus:
 
     def _find_page_index(self, value):
         return page.find_page_index(self, value)
+
+    def _find_page_index_binary(self, value):
+        return page.find_page_index_binary(self, value)
 
     def _rewrite_page(self, idx, df):
         return page.rewrite_page(self, idx, df)

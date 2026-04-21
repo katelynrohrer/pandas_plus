@@ -6,8 +6,32 @@ def build_pages(pdp):
     if pdp.can_fit_in_mem:
         df = pd.read_csv(pdp.file, dtype=str)
         return pdp._pages_from_df(df)
+    if pdp.sort_by is None:
+        return pages_from_unsorted_chunks(pdp)
     return pages_from_buckets(pdp)
 
+def pages_from_unsorted_chunks(pdp):
+    pages = []
+    chunk_num = 0
+    print("starting unsorted paged build...")
+
+    for chunk in pd.read_csv(pdp.file, dtype=str, chunksize=pdp.page_row_capacity):
+        chunk_num += 1
+        print(f"processing chunk {chunk_num}...")
+
+        chunk = chunk.reset_index(drop=True)
+
+        for i in range(0, len(chunk), pdp.page_row_capacity):
+            page_df = chunk.iloc[i:i + pdp.page_row_capacity].reset_index(drop=True)
+            pages.append(pdp._write_page(page_df, len(pages)))
+
+    if not pages:
+        empty_df = pd.DataFrame(columns=pdp.columns)
+        pages.append(pdp._write_page(empty_df, 0))
+
+    pdp.pages = pages
+    pdp._write_index(pdp.pages)
+    return pdp.pages
 
 def pages_from_buckets(pdp):
     pages = []
@@ -30,10 +54,17 @@ def pages_from_buckets(pdp):
         print(f"processing chunk {chunk_num}...")
         updates = {}
 
+        use_starter_buckets = any(page["first"] == "" and page["last"] == "" for page in pdp.pages)
+
         for _, row in chunk.iterrows():
             row_dict = row.to_dict()
             row_value = row_dict.get(key_col, "")
-            page_idx = find_page_index_binary(pdp, row_value)
+
+            if use_starter_buckets:
+                page_idx = _starter_bucket_index(row_value)
+            else:
+                page_idx = pdp._find_page_index_binary(row_value)
+
             updates.setdefault(page_idx, []).append(row_dict)
 
         touched_pages = []
@@ -79,36 +110,12 @@ def pages_from_df(pdp, df):
 
     return pages
 
-# helper function to binary search for correct page index
-def find_page_index_binary(pdp, value):
-    target = "" if pd.isna(value) else str(value)
-
-    left = 0
-    right = len(pdp.pages) - 1
-
-    while left <= right:
-        mid = (left + right) // 2
-        page = pdp.pages[mid]
-
-        first = str(page.get("first", ""))
-        last = str(page.get("last", ""))
-
-        if first <= target <= last:
-            return mid
-        if target < first:
-            right = mid - 1
-        else:
-            left = mid + 1
-
-    if left <= 0:
-        return 0
-    if left >= len(pdp.pages):
-        return len(pdp.pages) - 1
-    return left
-
-
 # move out of here if used later in non-initial build
 def sort_df(pdp, df):
     if df.empty:
         return df.reset_index(drop=True)
-    return df.sort_values(by=pdp.columns[0], kind="stable").reset_index(drop=True)
+
+    if pdp.sort_by is None:
+        return df.reset_index(drop=True) # todo why?
+
+    return df.sort_values(by=pdp.sort_by, kind="stable").reset_index(drop=True)

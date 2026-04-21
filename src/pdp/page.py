@@ -1,3 +1,4 @@
+
 import os
 import json
 import hashlib
@@ -8,12 +9,18 @@ def page_is_full(pdp, df):
     return len(df) > pdp.page_row_capacity
 
 def page_bounds(pdp, df):
+    if pdp.sort_by is None or df.empty:
+        return "", ""
+
     df = pdp._sort_df(df)
-    first = str(df.iloc[0][pdp.columns[0]])
-    last = str(df.iloc[-1][pdp.columns[0]])
+    first = str(df.iloc[0][pdp.sort_by])
+    last = str(df.iloc[-1][pdp.sort_by])
     return first, last
 
 def find_page_index(pdp, value):
+    if pdp.sort_by is None:
+        raise ValueError("page find requires pdp.sort_by to be set")
+
     text = "" if pd.isna(value) else str(value)
 
     for i, page in enumerate(pdp.pages):
@@ -22,25 +29,11 @@ def find_page_index(pdp, value):
         if page["first"] <= text <= page["last"]:
             return i
 
-    first_char = text[:1].upper()
-
-    for i, page in enumerate(pdp.pages):
-        if page["first"] == "" and page["last"] == "":
-            page_name = os.path.basename(page["path"])
-            if page_name.startswith(f"page_{first_char}"):
-                return i
-
-    for i, page in enumerate(pdp.pages):
-        if page["first"] == "" and page["last"] == "":
-            page_name = os.path.basename(page["path"])
-            if page_name.startswith("page_"):
-                return i
-
     for i, page in enumerate(pdp.pages):
         if text < page["first"]:
             return i
 
-    return len(pdp.pages) - 1
+    return len(pdp.pages) - 1 if len(pdp.pages) > 0 else 0
 
 
 def page_filename(pdp, df):
@@ -54,15 +47,18 @@ def page_filename(pdp, df):
 
 
 def write_page(pdp, df, idx=None):
-    df = pdp._sort_df(df)
+    if pdp.sort_by is not None:
+        df = pdp._sort_df(df)
 
     if df.empty:
         filename = os.path.join(pdp.page_folder, f"page_{idx if idx is not None else 'empty'}.pickle")
+        os.makedirs(pdp.page_folder, exist_ok=True)
         pd.to_pickle(df, filename)
         return {"path": filename, "first": "", "last": ""}
 
     first, last = pdp._page_bounds(df)
     filename = pdp._page_filename(df)
+    os.makedirs(pdp.page_folder, exist_ok=True)
     pd.to_pickle(df, filename)
     return {"path": filename, "first": first, "last": last}
 
@@ -85,7 +81,10 @@ def rewrite_page(pdp, idx, df):
 
 
 def split_page(pdp, idx, df):
-    col = pdp.columns[0]
+    if pdp.sort_by is None:
+        raise ValueError("split page requires pdp.sort_by to be set")
+
+    col = pdp.sort_by
     df = pdp._sort_df(df).reset_index(drop=True)
 
     mid = len(df) // 2
@@ -135,23 +134,53 @@ def split_page(pdp, idx, df):
 def remove_empty_pages(pdp):
     new_pages = []
 
-    for page in pdp.pages:
-        df = pd.read_pickle(page["path"])
-        if df.empty:
-            if os.path.exists(page["path"]):
-                os.remove(page["path"])
+    for filename in os.listdir(pdp.page_folder):
+        if not filename.endswith(".pickle"):
             continue
-        new_pages.append(page)
 
-    pdp.pages = new_pages
+        path = os.path.join(pdp.page_folder, filename)
+        df = pd.read_pickle(path)
+
+        if df.empty:
+            if os.path.exists(path):
+                os.remove(path)
+            continue
+
+        first, last = pdp._page_bounds(df)
+        new_pages.append({"path": path, "first": first, "last": last})
+
+    pdp.pages = sorted(new_pages, key=lambda page: page["first"])
     pdp._write_index(pdp.pages)
-
-
-def write_index(pdp, pages):
-    with open(pdp.index, "w") as f:
-        json.dump(pages, f)
-
 
 def load_page(pdp, idx):
     return pd.read_pickle(pdp.pages[idx]["path"])
 
+# helper function to binary search for correct page index
+def find_page_index_binary(pdp, value):
+    if pdp.sort_by is None:
+        raise ValueError("binary page lookup requires pdp.sort_by")
+
+    target = "" if pd.isna(value) else str(value)
+
+    left = 0
+    right = len(pdp.pages) - 1
+
+    while left <= right:
+        mid = (left + right) // 2
+        page = pdp.pages[mid]
+
+        first = str(page.get("first", ""))
+        last = str(page.get("last", ""))
+
+        if first <= target <= last:
+            return mid
+        if target < first:
+            right = mid - 1
+        else:
+            left = mid + 1
+
+    if left <= 0:
+        return 0
+    if left >= len(pdp.pages):
+        return len(pdp.pages) - 1
+    return left

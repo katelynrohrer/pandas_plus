@@ -1,6 +1,7 @@
 
 import os
 import json
+import shutil
 import pandas as pd
 
 
@@ -9,7 +10,12 @@ def load_valid_index(pdp):
         return None
 
     with open(pdp.index, "r") as f:
-        pages = json.load(f)
+        index_data = json.load(f)
+
+    pages = index_data["pages"]
+    index_sort_by = index_data["sort_by"]
+    if pdp.sort_by != index_sort_by:
+        raise ValueError(f"Sorting column does not match cache. Please abort existing cache to continue with this operation\n{pdp.sort_by} != {index_sort_by}")
 
     if all(os.path.exists(page["path"]) for page in pages):
         print("Found cache!")
@@ -20,8 +26,12 @@ def load_valid_index(pdp):
 
 
 def write_index(pdp, pages):
+    os.makedirs(pdp.page_folder, exist_ok=True)
     with open(pdp.index, "w") as f:
-        json.dump(pages, f)
+        json.dump({
+        "sort_by": pdp.sort_by,
+        "pages": pages
+    }, f)
 
 
 def clear_old_cache(pdp):
@@ -35,49 +45,11 @@ def clear_old_cache(pdp):
             continue
 
         if os.path.isdir(path):
-            index = os.path.join(path, "index.json")
-
-            if os.path.exists(index):
-                with open(index, "r") as f:
-                    pages = json.load(f)
-
-                for page in pages:
-                    path_to_remove = page["path"] if isinstance(page, dict) else page
-                    if os.path.exists(path_to_remove):
-                        os.remove(path_to_remove)
-
-                os.remove(index)
-
-            if not os.listdir(path):
-                os.rmdir(path)
+            shutil.rmtree(path)
 
 def clear_current_cache(pdp):
-    if not os.path.exists(pdp.page_folder):
-        return
-
-    if os.path.exists(pdp.index):
-        with open(pdp.index, "r") as f:
-            pages = json.load(f)
-
-        for page in pages:
-            path_to_remove = page["path"] if isinstance(page, dict) else page
-            if os.path.exists(path_to_remove):
-                os.remove(path_to_remove)
-
-        os.remove(pdp.index)
-
-    for name in os.listdir(pdp.page_folder):
-        path = os.path.join(pdp.page_folder, name)
-
-        if os.path.isfile(path):
-            os.remove(path)
-        elif os.path.isdir(path):
-            for root, dirs, files in os.walk(path, topdown=False):
-                for file in files:
-                    os.remove(os.path.join(root, file))
-                for directory in dirs:
-                    os.rmdir(os.path.join(root, directory))
-            os.rmdir(path)
+    if os.path.exists(pdp.page_folder):
+        shutil.rmtree(pdp.page_folder)
 
 def commit_cache(pdp):
     first_page = True
@@ -97,7 +69,9 @@ def abort_cache(pdp):
     # -- not recommended to call on each run --
     if os.path.exists(pdp.index):
         with open(pdp.index, "r") as f:
-            pages = json.load(f)
+            index_data = json.load(f)
+
+        pages = index_data["pages"]
 
         for page in pages:
             path_to_remove = page["path"] if isinstance(page, dict) else page
