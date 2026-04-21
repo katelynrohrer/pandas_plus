@@ -17,24 +17,6 @@ def page_bounds(pdp, df):
     last = str(df.iloc[-1][pdp.sort_by])
     return first, last
 
-def find_page_index(pdp, value):
-    if pdp.sort_by is None:
-        raise ValueError("page find requires pdp.sort_by to be set")
-
-    text = "" if pd.isna(value) else str(value)
-
-    for i, page in enumerate(pdp.pages):
-        if page["first"] == "" and page["last"] == "":
-            continue
-        if page["first"] <= text <= page["last"]:
-            return i
-
-    for i, page in enumerate(pdp.pages):
-        if text < page["first"]:
-            return i
-
-    return len(pdp.pages) - 1 if len(pdp.pages) > 0 else 0
-
 
 def page_filename(pdp, df):
     first_row = "|".join(str(v) for v in df.iloc[0].tolist())
@@ -56,14 +38,14 @@ def write_page(pdp, df, idx=None):
         pd.to_pickle(df, filename)
         return {"path": filename, "first": "", "last": ""}
 
-    first, last = pdp._page_bounds(df)
-    filename = pdp._page_filename(df)
+    first, last = page_bounds(pdp, df)
+    filename = page_filename(pdp, df)
     os.makedirs(pdp.page_folder, exist_ok=True)
     pd.to_pickle(df, filename)
     return {"path": filename, "first": first, "last": last}
 
 
-def rewrite_page(pdp, idx, df):
+def update_page(pdp, idx, df):
     old_path = pdp.pages[idx]["path"]
 
     if df.empty:
@@ -146,7 +128,7 @@ def remove_empty_pages(pdp):
                 os.remove(path)
             continue
 
-        first, last = pdp._page_bounds(df)
+        first, last = page_bounds(pdp, df)
         new_pages.append({"path": path, "first": first, "last": last})
 
     pdp.pages = sorted(new_pages, key=lambda page: page["first"])
@@ -155,6 +137,7 @@ def remove_empty_pages(pdp):
 def load_page(pdp, idx):
     return pd.read_pickle(pdp.pages[idx]["path"])
 
+# todo icky func
 # helper function to binary search for correct page index
 def find_page_index_binary(pdp, value):
     if pdp.sort_by is None:
@@ -184,3 +167,16 @@ def find_page_index_binary(pdp, value):
     if left >= len(pdp.pages):
         return len(pdp.pages) - 1
     return left
+
+def scan_for_key(pdp, key, key_col):
+    matches_by_page = []
+
+    for page_idx in range(len(pdp.pages)):
+        page_df = pdp._load_page(page_idx)
+        page_df[key_col] = page_df[key_col].astype(str)
+        matches = page_df[page_df[key_col] == key]
+
+        if len(matches) > 0:
+            matches_by_page.append((page_idx, page_df, matches))
+
+    return matches_by_page

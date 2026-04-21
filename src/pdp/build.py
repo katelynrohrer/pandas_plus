@@ -2,10 +2,20 @@
 import pandas as pd
 
 
+def set_sort_mode(pdp, sort, sort_col):
+    if sort and sort_col:
+        if sort_col not in pdp.columns:
+            raise ValueError(f"column to be sorted on must exist within df.\ncurrent columns:\n{pdp.columns}")
+        pdp.sort_by = sort_col
+    elif sort and not sort_col:
+        pdp.sort_by = pdp.columns[0]
+    else:
+        pdp.sort_by = None
+
 def build_pages(pdp):
     if pdp.can_fit_in_mem:
         df = pd.read_csv(pdp.file, dtype=str)
-        return pdp._pages_from_df(df)
+        return pages_from_df(pdp, df)
     if pdp.sort_by is None:
         return pages_from_unsorted_chunks(pdp)
     return pages_from_buckets(pdp)
@@ -74,7 +84,7 @@ def pages_from_buckets(pdp):
             new_rows_df = pd.DataFrame(updates[page_idx], columns=pdp.columns)
             page_df = pd.concat([page_df, new_rows_df], ignore_index=True)
             page_df = pdp._sort_df(page_df)
-            pdp._rewrite_page(page_idx, page_df)
+            pdp._update_page(page_idx, page_df)
             touched_pages.append(page_idx)
 
         offset = 0

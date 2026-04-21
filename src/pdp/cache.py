@@ -5,26 +5,6 @@ import shutil
 import pandas as pd
 
 
-def load_valid_index(pdp):
-    if not os.path.exists(pdp.index):
-        return None
-
-    with open(pdp.index, "r") as f:
-        index_data = json.load(f)
-
-    pages = index_data["pages"]
-    index_sort_by = index_data["sort_by"]
-    if pdp.sort_by != index_sort_by:
-        raise ValueError(f"Sorting column does not match cache. Please abort existing cache to continue with this operation\n{pdp.sort_by} != {index_sort_by}")
-
-    if all(os.path.exists(page["path"]) for page in pages):
-        print("Found cache!")
-        return pages
-
-    print("Rebuilding cache")
-    return None
-
-
 def write_index(pdp, pages):
     os.makedirs(pdp.page_folder, exist_ok=True)
     with open(pdp.index, "w") as f:
@@ -33,23 +13,14 @@ def write_index(pdp, pages):
         "pages": pages
     }, f)
 
+def build_cache(pdp):
+    if pdp.cache_exists():
+        raise FileExistsError("cache already exists. please abort the previous cache to continue.")
 
-def clear_old_cache(pdp):
-    for name in os.listdir(pdp.cache_root):
-        path = os.path.join(pdp.cache_root, name)
-
-        if name == pdp.page_key:
-            continue
-
-        if not name.startswith(f"{pdp.basename}_"):
-            continue
-
-        if os.path.isdir(path):
-            shutil.rmtree(path)
-
-def clear_current_cache(pdp):
-    if os.path.exists(pdp.page_folder):
-        shutil.rmtree(pdp.page_folder)
+    pages = pdp.build_pages()
+    pdp._write_index(pages)
+    pdp.pages = pages
+    return
 
 def commit_cache(pdp):
     first_page = True
@@ -64,21 +35,32 @@ def commit_cache(pdp):
         first_page = False
 
 def abort_cache(pdp):
-    # delete all pages in the cache, storage saver
-    # use when done working on files in a session
-    # -- not recommended to call on each run --
-    if os.path.exists(pdp.index):
+    if os.path.exists(pdp.page_folder):
+        shutil.rmtree(pdp.page_folder)
+
+
+def read_cache(pdp):
+    if pdp.cache_is_valid():  # which also checks that it exists
         with open(pdp.index, "r") as f:
             index_data = json.load(f)
+            self.sort_by = index_data["sort_by"]
 
-        pages = index_data["pages"]
+        pdp.pages = index_data["pages"]
+        return
 
-        for page in pages:
-            path_to_remove = page["path"] if isinstance(page, dict) else page
-            if os.path.exists(path_to_remove):
-                os.remove(path_to_remove)
+    if pdp.cache_exists():
+        raise FileExistsError("invalid cache exists. please abort the previous cache to continue.")
 
-        os.remove(pdp.index)
+def cache_is_valid(pdp):
+    if not pdp.has_cache():
+        return None
 
-    if os.path.exists(pdp.page_folder) and not os.listdir(pdp.page_folder):
-        os.rmdir(pdp.page_folder)
+    pages = index_data["pages"]
+    index_sort_by = index_data["sort_by"]
+    if pdp.sort_by != index_sort_by:
+        print(f"Sorting column does not match cache. Please abort existing cache to continue with this operation\n{pdp.sort_by} != {index_sort_by}")
+        return False
+
+    if all(os.path.exists(item["path"]) for item in pages):
+        return True
+    return False
