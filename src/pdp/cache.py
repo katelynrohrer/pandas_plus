@@ -17,7 +17,7 @@ def build_cache(pdp):
     if pdp.cache_exists():
         raise FileExistsError("cache already exists. please abort the previous cache to continue.")
 
-    pages = pdp.build_pages()
+    pages = pdp._build_pages()
     pdp._write_index(pages)
     pdp.pages = pages
     return
@@ -38,13 +38,12 @@ def abort_cache(pdp):
     if os.path.exists(pdp.page_folder):
         shutil.rmtree(pdp.page_folder)
 
-
 def read_cache(pdp):
     if pdp.cache_is_valid():  # which also checks that it exists
         with open(pdp.index, "r") as f:
             index_data = json.load(f)
-            self.sort_by = index_data["sort_by"]
 
+        self.sort_by = index_data["sort_by"]
         pdp.pages = index_data["pages"]
         return
 
@@ -52,8 +51,11 @@ def read_cache(pdp):
         raise FileExistsError("invalid cache exists. please abort the previous cache to continue.")
 
 def cache_is_valid(pdp):
-    if not pdp.has_cache():
-        return None
+    if not pdp.cache_exists():
+        return False
+
+    with open(pdp.index, "r") as f:
+        index_data = json.load(f)
 
     pages = index_data["pages"]
     index_sort_by = index_data["sort_by"]

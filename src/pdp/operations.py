@@ -40,7 +40,7 @@ def insert_by_scan(pdp, row: Dict):
 
 
 def insert_by_sorted_key(pdp, row: Dict):
-    row_value = row[pdp.sort_by]
+    row_value = str(row[pdp.sort_by])
 
     if not pdp.pages:
         new_page = pdp._write_page(pd.DataFrame([row], columns=pdp.columns))

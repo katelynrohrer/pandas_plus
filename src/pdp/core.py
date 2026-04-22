@@ -29,7 +29,7 @@ class PDplus:
         os.makedirs(self.page_folder, exist_ok=True)
 
         self.columns = list(pd.read_csv(self.file, nrows=0).columns)
-        self.sort_by = build.set_sort_mode(self, sort, sort_col)
+        build.set_sort_mode(self, sort, sort_col)
 
         self.pages = None
 
@@ -53,9 +53,6 @@ class PDplus:
     def read_cache(self):
         return cache.read_cache(self)
 
-    def build_pages(self):
-        return build.build_pages(self)
-
     def insert(self, row: Dict):
         return operations.insert(self, row)
 
@@ -73,11 +70,20 @@ class PDplus:
 
 #### HELPER FUNCTIONS ####
 
+    def _build_pages(self):
+        return build.build_pages(self)
+
     def _sort_df(self, df):
         return build.sort_df(self, df)
 
     def _write_index(self, pages):
         return cache.write_index(self, pages)
+
+    def _insert_by_sorted_key(self, row):
+        return operations.insert_by_sorted_key(self, row)
+
+    def _page_filename(self, first, last):
+        return page.page_filename(self, first, last)
 
     def _find_page_index_binary(self, value):
         return page.find_page_index_binary(self, value)

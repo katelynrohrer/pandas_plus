@@ -18,12 +18,12 @@ def page_bounds(pdp, df):
     return first, last
 
 
-def page_filename(pdp, df):
-    first_row = "|".join(str(v) for v in df.iloc[0].tolist())
-    last_row = "|".join(str(v) for v in df.iloc[-1].tolist())
+def page_filename(pdp, first, last):
+    # first_row = "|".join(str(v) for v in df.iloc[0].tolist())
+    # last_row = "|".join(str(v) for v in df.iloc[-1].tolist())
 
-    first_hash = hashlib.sha1(first_row.encode()).hexdigest()[:8]
-    last_hash = hashlib.sha1(last_row.encode()).hexdigest()[:8]
+    first_hash = hashlib.sha1(first.encode()).hexdigest()[:8]
+    last_hash = hashlib.sha1(last.encode()).hexdigest()[:8]
 
     return os.path.join(pdp.page_folder, f"{first_hash}__{last_hash}.pickle")
 
@@ -39,7 +39,7 @@ def write_page(pdp, df, idx=None):
         return {"path": filename, "first": "", "last": ""}
 
     first, last = page_bounds(pdp, df)
-    filename = page_filename(pdp, df)
+    filename = page_filename(pdp, first, last)
     os.makedirs(pdp.page_folder, exist_ok=True)
     pd.to_pickle(df, filename)
     return {"path": filename, "first": first, "last": last}
