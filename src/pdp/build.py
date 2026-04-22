@@ -59,77 +59,43 @@ def build_pages_sorted(pdp):
     pdp.pages = [page]
     pdp._write_index(pdp.pages)
 
-    # reading in chunks of data
     for i, chunk in enumerate(pd.read_csv(pdp.file, dtype=str, chunksize=pdp.page_row_capacity)):
+        updates = {}
 
-        # reading each line of data
         for _, row in chunk.iterrows():
+            row_dict = row.to_dict()
+            row_value = str(row_dict[pdp.sort_by])
+            page_idx = pdp._find_page_index_binary(row_value)
+            updates.setdefault(page_idx, []).append(row_dict)
 
-            # insertion sort into correct chunk. split when needed
-            pdp._insert_by_sorted_key(row.to_dict())
+        touched_pages = []
 
+        for page_idx in sorted(updates.keys()):
+            page_df = pdp._load_page(page_idx)
+            new_rows_df = pd.DataFrame(updates[page_idx], columns=pdp.columns)
+            page_df = pd.concat([page_df, new_rows_df], ignore_index=True)
+            page_df = sort_df(pdp, page_df)
+            pdp._update_page(page_idx, page_df)
+            touched_pages.append(page_idx)
 
-# def pages_from_buckets(pdp):
-#     pages = []
-#
-#     for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
-#         empty_df = pd.DataFrame(columns=pdp.columns)
-#         page = pdp._write_page(empty_df, idx=letter)
-#         pages.append(page)
-#
-#     pdp.pages = pages
-#     pdp._write_index(pdp.pages)
-#
-#     key_col = pdp.columns[0]
-#     chunk_num = 0
-#     print("starting paged build...")
-#
-#     # use build in generator for chunking
-#     for chunk in pd.read_csv(pdp.file, dtype=str, chunksize=pdp.page_row_capacity):
-#         chunk_num += 1
-#         print(f"processing chunk {chunk_num}...")
-#         updates = {}
-#
-#         use_starter_buckets = any(page["first"] == "" and page["last"] == "" for page in pdp.pages)
-#
-#         for _, row in chunk.iterrows():
-#             row_dict = row.to_dict()
-#             row_value = row_dict.get(key_col, "")
-#
-#             if use_starter_buckets:
-#                 page_idx = _starter_bucket_index(row_value)
-#             else:
-#                 page_idx = pdp._find_page_index_binary(row_value)
-#
-#             updates.setdefault(page_idx, []).append(row_dict)
-#
-#         touched_pages = []
-#
-#         for page_idx in sorted(updates.keys()):
-#             page_df = pdp._load_page(page_idx)
-#             new_rows_df = pd.DataFrame(updates[page_idx], columns=pdp.columns)
-#             page_df = pd.concat([page_df, new_rows_df], ignore_index=True)
-#             page_df = pdp._sort_df(page_df)
-#             pdp._update_page(page_idx, page_df)
-#             touched_pages.append(page_idx)
-#
-#         offset = 0
-#         for original_idx in touched_pages:
-#             page_idx = original_idx + offset
-#
-#             while page_idx < len(pdp.pages):
-#                 current_df = pdp._load_page(page_idx)
-#                 if not pdp._page_is_full(current_df):
-#                     break
-#
-#                 before = len(pdp.pages)
-#                 pdp._split_page(page_idx, current_df)
-#                 after = len(pdp.pages)
-#                 offset += after - before
-#
-#     pdp._remove_empty_pages()
-#     pdp._write_index(pdp.pages)
-#     return pdp.pages
+        offset = 0
+        for original_idx in touched_pages:
+            page_idx = original_idx + offset
+
+            while page_idx < len(pdp.pages):
+                current_df = pdp._load_page(page_idx)
+                if not pdp._page_is_full(current_df):
+                    break
+
+                before = len(pdp.pages)
+                pdp._split_page(page_idx, current_df)
+                after = len(pdp.pages)
+                offset += after - before
+
+        pdp._write_index(pdp.pages)
+        print(f"page {i} done")
+
+    return pdp.pages
 
 
 def pages_from_df(pdp, df):

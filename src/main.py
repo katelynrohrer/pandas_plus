@@ -5,38 +5,24 @@ import utils
 
 def main():
     file = "data/medium_song.csv"
-    df = pdp.PDplus(file)
+    df = pdp.PDplus(file) # by default, sorts by first col
+
+    if not df.cache_is_valid():
+        df.abort_cache()
+        df.build_cache()
+    else:
+        df.read_cache()
+
     df.print()
-    print(df.page_row_capacity)
-    new_row = {
-        'id': "0VENt14WVFyKtCmhHNLE7W",
-        'name': "AAA",
-        'album_name': "BBB",
-        'artists': "CCC",
-        'danceability': "DDD",
-        'energy': "EEE",
-        'key': "FFF",
-        'loudness': "GGG",
-        'mode': "HHH",
-        'speechiness': "III",
-        'acousticness': "JJJ",
-        'instrumentalness': "KKK",
-        'liveness': "LLL",
-        'valence': "MMM",
-        'tempo': "NNN",
-        'duration_ms': "OOO",
-        'lyrics': "PPP",
-        'year': "QQQ",
-        'genre': "RRR",
-        'popularity': "SSS",
-        'total_artist_followers': "TTT",
-        'avg_artist_popularity': "UUU",
-        'artist_ids': "VVV",
-        'niche_genres': "WWW"
-    }
     print("\n\n\nINSERTING HERE\n\n\n")
-    df.insert(new_row)
+    for i in range(100):
+        df.insert(utils.new_row)
     df.print()
+    print("\n\n\nDELETING HERE\n\n\n")
+    df.delete(utils.new_row["id"], single=False)
+
+    df.print()
+
 
 if __name__ == "__main__":
     main()
