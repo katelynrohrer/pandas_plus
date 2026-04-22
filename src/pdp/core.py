@@ -10,7 +10,7 @@ from . import operations
 
 
 class PDplus:
-    def __init__(self, filepath, sort=True, sort_col=None):
+    def __init__(self, filepath, sort=True, sort_col=None, build_name="default"):
         self.file = filepath
         self.basename = os.path.basename(filepath).rsplit(".")[0]
         self.filesize = os.path.getsize(filepath)
@@ -19,13 +19,16 @@ class PDplus:
         self.page_row_capacity = int(utils.get_size_limit() / self.row_size)
 
         self.can_fit_in_mem = self.filesize < utils.get_size_limit()
+        self.build_name = build_name
 
-        self.cache_root = os.path.join("tmp", "pages")
+        self.cache_root = os.path.join("tmp", "builds")
         os.makedirs(self.cache_root, exist_ok=True)
 
-        self.page_key = f"{self.basename}_{self.filesize}_{self.page_row_capacity}"
-        self.page_folder = os.path.join(self.cache_root, self.page_key)
+        self.build_key = f"{self.basename}_{self.filesize}_{self.page_row_capacity}"
+        self.build_root = os.path.join(self.cache_root, self.build_key)
+        self.page_folder = os.path.join(self.build_root, self.build_name)
         self.index = os.path.join(self.page_folder, "index.json")
+        self.meta = os.path.join(self.page_folder, "meta.json")
         os.makedirs(self.page_folder, exist_ok=True)
 
         self.columns = list(pd.read_csv(self.file, nrows=0).columns)
@@ -50,8 +53,8 @@ class PDplus:
     def abort_cache(self):
         return cache.abort_cache(self)
 
-    def read_cache(self):
-        return cache.read_cache(self)
+    def read_cache(self, overwrite=False):
+        return cache.read_cache(self, overwrite)
 
     def insert(self, row: Dict):
         return operations.insert(self, row)
@@ -61,6 +64,12 @@ class PDplus:
 
     def lookup(self, key, key_col=None):
         return operations.lookup(self, key, key_col)
+
+    def filter(self, predicate):
+        return operations.filter(self, predicate)
+
+    def make_snapshot(self, build_name, overwrite=False):
+        return cache.make_snapshot(self, build_name, overwrite)
 
     def print(self):
         for item in self.pages:

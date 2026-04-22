@@ -19,9 +19,6 @@ def page_bounds(pdp, df):
 
 
 def page_filename(pdp, first, last):
-    # first_row = "|".join(str(v) for v in df.iloc[0].tolist())
-    # last_row = "|".join(str(v) for v in df.iloc[-1].tolist())
-
     first_hash = hashlib.sha1(first.encode()).hexdigest()[:8]
     last_hash = hashlib.sha1(last.encode()).hexdigest()[:8]
 

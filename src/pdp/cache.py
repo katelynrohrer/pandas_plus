@@ -16,7 +16,9 @@ def write_index(pdp, pages):
             new_page["hash"] = page_hash
             pages_with_hash.append(new_page)
         json.dump({
+            "build_name": pdp.build_name,
             "sort_by": pdp.sort_by,
+            "columns": pdp.columns,
             "pages": pages_with_hash
         }, f)
 
@@ -40,21 +42,64 @@ def commit_cache(pdp):
         )
         first_page = False
 
+
+# Save the current cache under a new build name and folder.
+def make_snapshot(pdp, build_name, overwrite=False):
+    new_page_folder = os.path.join(pdp.build_root, build_name)
+    new_index = os.path.join(new_page_folder, "index.json")
+    new_meta = os.path.join(new_page_folder, "meta.json")
+
+    if os.path.exists(new_page_folder) and not overwrite:
+        raise FileExistsError("cache already exists for this build name. please choose another name or overwrite the existing cache.")
+    if os.path.exists(new_page_folder) and overwrite:
+        shutil.rmtree(new_page_folder)
+
+    os.makedirs(new_page_folder, exist_ok=False)
+
+    new_pages = []
+    for idx, page in enumerate(pdp.pages):
+        df = pd.read_pickle(page["path"])
+        filename = os.path.basename(page["path"])
+        new_path = os.path.join(new_page_folder, filename)
+        pd.to_pickle(df, new_path)
+
+        new_page = dict(page)
+        new_page["path"] = new_path
+        new_pages.append(new_page)
+
+    # write just needs these fields to be set correctly. this is a workaround
+    temp_build_name, pdp.build_name = pdp.build_name, build_name
+    temp_page_folder, pdp.page_folder = pdp.page_folder, new_page_folder
+    temp_index, pdp.index = pdp.index, new_index
+    temp_meta, pdp.meta = pdp.meta, new_meta
+
+    write_index(pdp, new_pages)
+
+    pdp.build_name, temp_build_name = temp_build_name, pdp.build_name
+    pdp.page_folder, temp_page_folder = temp_page_folder, pdp.page_folder
+    pdp.index, temp_index = temp_index, pdp.index
+    pdp.meta, temp_meta = temp_meta, pdp.meta
+
 def abort_cache(pdp):
     if os.path.exists(pdp.page_folder):
         shutil.rmtree(pdp.page_folder)
 
-def read_cache(pdp):
+def read_cache(pdp, overwrite=False):
     if pdp.cache_is_valid():  # which also checks that it exists
         with open(pdp.index, "r") as f:
             index_data = json.load(f)
 
+        pdp.build_name = index_data["build_name"]
         pdp.sort_by = index_data["sort_by"]
+        pdp.columns = index_data["columns"]
         pdp.pages = index_data["pages"]
         return
 
-    if pdp.cache_exists():
-        raise FileExistsError("invalid cache exists. please abort the previous cache to continue.")
+    if pdp.cache_exists() and not overwrite:
+        raise FileExistsError("invalid cache exists. please abort the previous cache or set overwrite=True to continue.")
+    if pdp.cache_exists() and overwrite:
+        abort_cache(pdp)
+        read_cache(pdp)
 
 def cache_is_valid(pdp):
     if not pdp.cache_exists():
@@ -64,7 +109,9 @@ def cache_is_valid(pdp):
         index_data = json.load(f)
 
     pages = index_data["pages"]
+    index_build_name = index_data["build_name"]
     index_sort_by = index_data["sort_by"]
+    index_columns = index_data["columns"]
     for page in pages:
         path = page["path"]
         expected_hash = page["hash"]
@@ -74,6 +121,12 @@ def cache_is_valid(pdp):
         if expected_hash != current_hash:
             print(f"Page modified: {path}")
             return False
+    if pdp.build_name != index_build_name:
+        print(f"Build name does not match cache. Please abort existing cache to continue with this operation\n{pdp.build_name} != {index_build_name}")
+        return False
+    if pdp.columns != index_columns:
+        print(f"Columns do not match cache. Please abort existing cache to continue with this operation\n{pdp.columns} != {index_columns}")
+        return False
     if pdp.sort_by != index_sort_by:
         print(f"Sorting column does not match cache. Please abort existing cache to continue with this operation\n{pdp.sort_by} != {index_sort_by}")
         return False

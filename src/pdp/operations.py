@@ -80,7 +80,10 @@ def insertion_sort_insert(pdp, df, row):
 
 ### Delete functions ###
 
-def delete(pdp, key, single=True, key_col=None):
+def delete(pdp, key, allow_duplicates=False, key_col=None):
+    if isinstance(key, pd.DataFrame):
+        return delete_by_df(pdp, key, allow_duplicates)
+
     key = str(key)
     if key_col is None:
         key_col = pdp.sort_by if pdp.sort_by is not None else pdp.columns[0]
@@ -88,12 +91,12 @@ def delete(pdp, key, single=True, key_col=None):
         raise ValueError("delete key column not found in df")
 
     if pdp.sort_by is not None and key_col == pdp.sort_by:
-        return delete_by_sorted_key(pdp, key, single)
+        return delete_by_sorted_key(pdp, key, allow_duplicates)
 
-    return delete_by_scan(pdp, key, key_col, single)
+    return delete_by_scan(pdp, key, key_col, allow_duplicates)
 
 
-def delete_by_sorted_key(pdp, key, single=True):
+def delete_by_sorted_key(pdp, key, allow_duplicates=False):
     candidate_pages = []
 
     page_idx = pdp._find_page_index_binary(key)
@@ -129,7 +132,7 @@ def delete_by_sorted_key(pdp, key, single=True):
     if total_matches == 0:
         return False
 
-    if single and total_matches > 1:
+    if not allow_duplicates and total_matches > 1:
         raise ValueError(f"duplicate key found during delete: {key}")
 
     pages_to_delete = []
@@ -153,7 +156,7 @@ def delete_by_sorted_key(pdp, key, single=True):
     return True
 
 
-def delete_by_scan(pdp, key, key_col, single=True):
+def delete_by_scan(pdp, key, key_col, allow_duplicates=False):
     total_matches = 0
     matches_by_page = []
 
@@ -169,7 +172,7 @@ def delete_by_scan(pdp, key, key_col, single=True):
     if total_matches == 0:
         return False
 
-    if single and total_matches > 1:
+    if not allow_duplicates and total_matches > 1:
         raise ValueError(f"duplicate key found during delete: {key}")
 
     pages_to_delete = []
@@ -191,6 +194,70 @@ def delete_by_scan(pdp, key, key_col, single=True):
 
     pdp._write_index(pdp.pages)
     return True
+
+
+def delete_by_df(pdp, df, allow_duplicates=False):
+    if df.empty:
+        return False
+
+    rows = df.to_dict(orient="records")
+    deleted_any = False
+
+    for row in rows:
+        row_matches = 0
+
+        for page_idx in range(len(pdp.pages)):
+            page_df = pdp._load_page(page_idx)
+            if page_df.empty:
+                continue
+
+            page_matches = pd.Series(True, index=page_df.index)
+            for col in pdp.columns:
+                page_matches &= page_df[col].astype(str) == str(row[col])
+
+            row_matches += int(page_matches.sum())
+
+        if row_matches == 0:
+            continue
+
+        if not allow_duplicates and row_matches > 1:
+            raise ValueError(f"duplicate row found during delete: {row}")
+
+        pages_to_delete = []
+
+        for page_idx in range(len(pdp.pages)):
+            page_df = pdp._load_page(page_idx)
+            if page_df.empty:
+                continue
+
+            page_matches = pd.Series(True, index=page_df.index)
+            for col in pdp.columns:
+                page_matches &= page_df[col].astype(str) == str(row[col])
+
+            if not page_matches.any():
+                continue
+
+            page_df = page_df[~page_matches].reset_index(drop=True)
+
+            if page_df.empty:
+                old_path = pdp.pages[page_idx]["path"]
+                if os.path.exists(old_path):
+                    os.remove(old_path)
+                pages_to_delete.append(page_idx)
+            else:
+                pdp._update_page(page_idx, page_df)
+                update_page_index(pdp, page_idx, page_df)
+
+            deleted_any = True
+
+            if not allow_duplicates:
+                break
+
+        for page_idx in reversed(pages_to_delete):
+            del pdp.pages[page_idx]
+
+    pdp._write_index(pdp.pages)
+    return deleted_any
 
 
 ### Lookup functions ###
@@ -238,6 +305,29 @@ def lookup_by_scan(pdp, key, key_col):
         return pd.DataFrame(columns=pdp.columns)
 
     return pd.concat(matches_by_page, ignore_index=True)
+
+
+### Filter ###
+
+def filter(pdp, predicate):
+    if not callable(predicate):
+        raise TypeError("filter expects a callable (e.g., lambda x: ...)")
+
+    matches = []
+
+    for idx in range(len(pdp.pages)):
+        page_df = pdp._load_page(idx)
+        if page_df.empty:
+            continue
+
+        filtered = page_df[page_df.apply(predicate, axis=1)]
+        matches.append(filtered)
+
+    if not matches:
+        return pd.DataFrame(columns=pdp.columns)
+
+    return pd.concat(matches, ignore_index=True)
+
 
 
 ### Helpers ###

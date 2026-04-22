@@ -27,7 +27,8 @@ def main():
 
     file2 = "data/small_song.csv"
     df2 = pdp.PDplus(file2, sort_col="song.id") # by default, sorts by first col
-
+    if not df2.cache_exists():
+        print(f"WARNING: no existing cache by name {df2.build_name}. Reloading from disk")
     if not df2.cache_is_valid():
         df2.abort_cache()
         df2.build_cache()
@@ -35,14 +36,15 @@ def main():
         df2.read_cache()
 
     df2.print()
-    print("\n\n\nINSERTING HERE\n\n\n")
-    for i in range(100):
-        df2.insert(utils.new_row2)
-    df2.print()
-    print("\n\n\nDELETING HERE\n\n\n")
-    df2.delete(utils.new_row2["song.id"], single=False)
-
-    df2.print()
+    print(df2.filter(lambda x: x["song.year"] == "1991" and float(x["artist.hotttnesss"]) > 0.5))
+    # print("\n\n\nINSERTING HERE\n\n\n")
+    # for i in range(100):
+    #     df2.insert(utils.new_row2)
+    # df2.print()
+    # print("\n\n\nDELETING HERE\n\n\n")
+    # df2.delete(utils.new_row2["song.id"], single=False)
+    # df2.make_snapshot(build_name="insert")
+    # df2.print()
 
 
 
