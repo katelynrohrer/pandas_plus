@@ -1,21 +1,27 @@
-
 import os
 import pandas as pd
 
 
 def set_sort_mode(pdp, sort, sort_col):
-    if sort and sort_col:
+    if not sort:
+        pdp.sort_by = None
+        return
+
+    if sort_col:
         if sort_col not in pdp.columns:
             raise ValueError(f"column to be sorted on must exist within df.\ncurrent columns:\n{pdp.columns}")
-        pdp.sort_by = sort_col
-    elif sort and not sort_col:
-        pdp.sort_by = pdp.columns[0]
-    else:
-        pdp.sort_by = None
+        pdp.columns.remove(sort_col)
+        pdp.columns.insert(0, sort_col)
+
+    pdp.sort_by = pdp.columns[0]
 
 def build_pages(pdp):
+    if pdp.sort_by is not None and pdp.columns[0] != pdp.sort_by:
+        pdp.columns.remove(pdp.sort_by)
+        pdp.columns.insert(0, pdp.sort_by)
     if pdp.can_fit_in_mem:
         df = pd.read_csv(pdp.file, dtype=str)
+        df = df[pdp.columns]
         pages_from_df(pdp, df)
         return
     if pdp.sort_by is None:
@@ -29,6 +35,7 @@ def build_pages_unsorted(pdp):
     print("starting unsorted paged build...")
 
     for chunk in pd.read_csv(pdp.file, dtype=str, chunksize=pdp.page_row_capacity):
+        chunk = chunk[pdp.columns]
         chunk_num += 1
         print(f"processing chunk {chunk_num}...")
 
@@ -60,6 +67,7 @@ def build_pages_sorted(pdp):
     pdp._write_index(pdp.pages)
 
     for i, chunk in enumerate(pd.read_csv(pdp.file, dtype=str, chunksize=pdp.page_row_capacity)):
+        chunk = chunk[pdp.columns]
         updates = {}
 
         for _, row in chunk.iterrows():

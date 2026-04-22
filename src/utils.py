@@ -44,6 +44,43 @@ new_row = {
     'artist_ids': "VVV",
     'niche_genres': "WWW"
 }
+new_row2 = {
+    'artist.familiarity': 'AAA',
+    'artist.hotttnesss': 'BBB',
+    'artist.id': 'CCC',
+    'artist.latitude': 'DDD',
+    'artist.location': 'EEE',
+    'artist.longitude': 'FFF',
+    'artist.name': 'GGG',
+    'artist.similar': 'HHH',
+    'artist.terms': 'III',
+    'artist.terms_freq': 'JJJ',
+    'release.id': 'KKK',
+    'release.name': 'LLL',
+    'song.artist_mbtags': 'MMM',
+    'song.artist_mbtags_count': 'NNN',
+    'song.bars_confidence': 'OOO',
+    'song.bars_start': 'PPP',
+    'song.beats_confidence': 'QQQ',
+    'song.beats_start': 'RRR',
+    'song.duration': 'SSS',
+    'song.end_of_fade_in': 'TTT',
+    'song.hotttnesss': 'UUU',
+    'song.id': '00000000',
+    'song.key': 'WWW',
+    'song.key_confidence': 'XXX',
+    'song.loudness': 'YYY',
+    'song.mode': 'ZZZ',
+    'song.mode_confidence': 'AAAA',
+    'song.start_of_fade_out': 'BBBB',
+    'song.tatums_confidence': 'CCCC',
+    'song.tatums_start': 'DDDD',
+    'song.tempo': 'EEEE',
+    'song.time_signature': 'FFFF',
+    'song.time_signature_confidence': 'GGGG',
+    'song.title': 'HHHH',
+    'song.year': 'IIII'
+}
 
 
 def iter_files(file_main, files=None):

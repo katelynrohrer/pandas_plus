@@ -1,4 +1,3 @@
-
 import os
 import pandas as pd
 from typing import Dict
@@ -10,11 +9,10 @@ from bisect import bisect_right
 def insert(pdp, row: Dict):
     if set(row.keys()) != set(pdp.columns):
         raise KeyError("New row must have the same columns as the rest of the df")
-
-    if pdp.sort_by is None:
-        return insert_by_scan(pdp, row)
-
-    return insert_by_sorted_key(pdp, row)
+    elif pdp.sort_by is None:
+        insert_by_scan(pdp, row)
+    else:
+        insert_by_sorted_key(pdp, row)
 
 
 def insert_by_scan(pdp, row: Dict):
@@ -96,33 +94,61 @@ def delete(pdp, key, single=True, key_col=None):
 
 
 def delete_by_sorted_key(pdp, key, single=True):
+    candidate_pages = []
+
     page_idx = pdp._find_page_index_binary(key)
-    if page_idx is None:
+    if page_idx is not None:
+        candidate_pages.append(page_idx)
+
+    if page_idx is not None and page_idx - 1 >= 0:
+        prev_page = pdp.pages[page_idx - 1]
+        if str(prev_page["first"]) <= key <= str(prev_page["last"]):
+            candidate_pages.append(page_idx - 1)
+
+    if page_idx is not None and page_idx + 1 < len(pdp.pages):
+        next_page = pdp.pages[page_idx + 1]
+        if str(next_page["first"]) <= key <= str(next_page["last"]):
+            candidate_pages.append(page_idx + 1)
+
+    candidate_pages = sorted(set(candidate_pages))
+    if not candidate_pages:
         return False
 
-    page_df = pdp._load_page(page_idx)
-    page_df[pdp.sort_by] = page_df[pdp.sort_by].astype(str)
+    total_matches = 0
+    matches_by_page = []
 
-    matches = page_df[page_df[pdp.sort_by] == key]
+    for candidate_idx in candidate_pages:
+        page_df = pdp._load_page(candidate_idx)
+        page_df[pdp.sort_by] = page_df[pdp.sort_by].astype(str)
+        matches = page_df[page_df[pdp.sort_by] == key]
 
-    if len(matches) == 0:
+        if len(matches) > 0:
+            total_matches += len(matches)
+            matches_by_page.append((candidate_idx, page_df))
+
+    if total_matches == 0:
         return False
 
-    if single and len(matches) > 1:
+    if single and total_matches > 1:
         raise ValueError(f"duplicate key found during delete: {key}")
 
-    page_df = page_df[page_df[pdp.sort_by] != key].reset_index(drop=True)
+    pages_to_delete = []
 
-    if page_df.empty:
-        old_path = pdp.pages[page_idx]["path"]
-        if os.path.exists(old_path):
-            os.remove(old_path)
-        del pdp.pages[page_idx]
-        pdp._write_index(pdp.pages)
-        return True
+    for candidate_idx, page_df in matches_by_page:
+        page_df = page_df[page_df[pdp.sort_by] != key].reset_index(drop=True)
 
-    pdp._update_page(page_idx, page_df)
-    update_page_index(pdp, page_idx, page_df)
+        if page_df.empty:
+            old_path = pdp.pages[candidate_idx]["path"]
+            if os.path.exists(old_path):
+                os.remove(old_path)
+            pages_to_delete.append(candidate_idx)
+        else:
+            pdp._update_page(candidate_idx, page_df)
+            update_page_index(pdp, candidate_idx, page_df)
+
+    for candidate_idx in reversed(pages_to_delete):
+        del pdp.pages[candidate_idx]
+
     pdp._write_index(pdp.pages)
     return True
 

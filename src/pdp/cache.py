@@ -3,15 +3,22 @@ import os
 import json
 import shutil
 import pandas as pd
+import hashlib
 
 
 def write_index(pdp, pages):
     os.makedirs(pdp.page_folder, exist_ok=True)
     with open(pdp.index, "w") as f:
+        pages_with_hash = []
+        for page in pages:
+            page_hash = hash_file(page["path"]) if os.path.exists(page["path"]) else None
+            new_page = dict(page)
+            new_page["hash"] = page_hash
+            pages_with_hash.append(new_page)
         json.dump({
-        "sort_by": pdp.sort_by,
-        "pages": pages
-    }, f)
+            "sort_by": pdp.sort_by,
+            "pages": pages_with_hash
+        }, f)
 
 def build_cache(pdp):
     if pdp.cache_exists():
@@ -58,10 +65,25 @@ def cache_is_valid(pdp):
 
     pages = index_data["pages"]
     index_sort_by = index_data["sort_by"]
+    for page in pages:
+        path = page["path"]
+        expected_hash = page["hash"]
+        if not os.path.exists(path):
+            return False
+        current_hash = hash_file(path)
+        if expected_hash != current_hash:
+            print(f"Page modified: {path}")
+            return False
     if pdp.sort_by != index_sort_by:
         print(f"Sorting column does not match cache. Please abort existing cache to continue with this operation\n{pdp.sort_by} != {index_sort_by}")
         return False
+    return True
 
-    if all(os.path.exists(item["path"]) for item in pages):
-        return True
-    return False
+
+# Helper function to compute the hash of a file
+def hash_file(path):
+    hasher = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(8192), b""):
+            hasher.update(chunk)
+    return hasher.hexdigest()
