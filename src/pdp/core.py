@@ -40,45 +40,103 @@ class PDplus:
 #### PUBLIC API ####
 
     def cache_exists(self):
-        return os.path.exists(self.index)
+        # Returns true/false on whether a cache folder exists for this build.
+        # Does not validate that the cache is correct.
+        # In most cases, cache_is_valid is preferred to use as it does both.
+        if os.path.exists(self.index):
+            return True
+        print(f"WARNING: no existing cache by name {self.build_name}. Reloading from disk")
+        return False
 
     def cache_is_valid(self):
+        # Returns true/false on whether a cache folder exists for this build
+        # AND that the cache is valid
+        # A valid cache means that all files correlated to the build exist
+        # and have not been changed since last save
         return cache.cache_is_valid(self)
 
-    def build_cache(self):
-        return cache.build_cache(self)
+    def build_cache(self, overwrite=False):
+        # Builds the cache from the source csv file. By default,
+        # it will raise an error if a cache already exists.
+        # If overwrite is true, it will overwrite the existing cache if it exists
+        cache.build_cache(self, overwrite)
 
     def commit_cache(self):
-        return cache.commit_cache(self)
+        # Commits the current build back to the source csv file.
+        cache.commit_cache(self)
 
     def abort_cache(self):
-        return cache.abort_cache(self)
+        # Deletes the current build entirely
+        cache.abort_cache(self)
 
-    def read_cache(self, overwrite=False):
-        return cache.read_cache(self, overwrite)
+    def read_cache(self):
+        # Reads the existing cache for this build.
+        # If no cache exists or the cache is invalid, it will raise an error.
+        cache.read_cache(self)
 
     def close_project(self, save_as):
-        return cache.close_project(self, save_as)
+        # Closes the entire project folder, including all builds.
+        # Requires a valid build name to be given and saved before closing project.
+        # If no builds should be saved, set save_as to None
+        cache.close_project(self, save_as)
 
     def insert(self, row: Dict):
-        return operations.insert(self, row)
+        # Inserts a single row into the database.
+        # If the pdp was created sorted, will use that sort to insert the row
+        # using a binary search (O(logN)). However, if the pdp is unsorted,
+        # will jump to the end and add row (O(1)).
+        operations.insert(self, row)
 
-    def delete(self, key, single=True, key_col=None):
-        return operations.delete(self, key, single, key_col)
+    def delete(self, key_or_df, single=True, key_col=None):
+        # By default, deletes a single key from the df. This assumes a primary
+        # key, so it will error if duplicates are found. However, if single=False,
+        # duplicates are also deleted. The column to delete by is by default
+        # the column the df is sorted by, or the first column if no sort is defined.
+        # Can also accept a df, which would delete all matching rows from the pdp.
+        # Deleting from sorted df using sorted key: O(log(N)) via binary search
+        # Any other deletion requires O(n) per entry
+        # Returns True if a delete occurred or False if not.
+        return operations.delete(self, key_or_df, single, key_col)
 
-    def lookup(self, key, key_col=None):
-        return operations.lookup(self, key, key_col)
+    def lookup(self, key, key_col=None, save_as=None):
+        # Lookup (scan) for a specific key in a similar way to delete.
+        # Uses the sort by col if able (O(log N)), or scans if not (O(n)).
 
-    def filter(self, predicate):
-        return operations.filter(self, predicate)
+        # If save_as is passed, saves the df build to cache under that name.
+        # Otherwise, saves it under a temp name. Returns the new pdp.
+        return operations.lookup(self, key, key_col, save_as)
+
+    def filter(self, predicate, save_as=None):
+        # Filter by a given predicate. Predicate must be callable.
+        # Must fully scan the db each time, so this is an O(n) operation.
+
+        # If save_as is passed, saves the df build to cache under that name.
+        # Otherwise, saves it under a temp name. Returns the new pdp.
+        return operations.filter(self, predicate, save_as)
+
+    def project(self, cols, save_as=None):
+        # Project the given cols adn drop the rest of the data.
+        # Can take one or multiple cols.
+        # Must fully scan the db each time, so this is an O(n) operation.
+
+        # If save_as is passed, saves the df build to cache under that name.
+        # Otherwise, saves it under a temp name. Returns the new pdp.
+        return operations.project(self, cols, save_as)
 
     def count(self, predicate):
+        # Count occurences of a given predicate. Predicate must be callable.
+        # Must fully scan the db each time, so this is an O(n) operation.
+        # Returns the integer count.
         return operations.count(self, predicate)
 
     def make_snapshot(self, build_name, overwrite=False):
-        return cache.make_snapshot(self, build_name, overwrite)
+        # Creates a manual save of the current build. Used as a checkpoint
+        # for later work to continue from. Does not return the new build.
+        # Instead, work will continue on the current build.
+        cache.make_snapshot(self, build_name, overwrite)
 
     def print(self):
+        # Prints out the current state of the pdp, page by page.
         for item in self.pages:
             df = pd.read_pickle(item["path"])
             print(df)

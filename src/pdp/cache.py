@@ -22,13 +22,16 @@ def write_index(pdp, pages):
             "pages": pages_with_hash
         }, f)
 
-def build_cache(pdp):
-    if pdp.cache_exists():
+def build_cache(pdp, overwrite=False):
+    if pdp.cache_exists() and not overwrite:
         raise FileExistsError("cache already exists. please abort the previous cache to continue.")
+
+    if pdp.cache_exists() and overwrite:
+        pdp.abort_cache()
 
     pdp._build_pages()
     pdp._write_index(pdp.pages)
-    return
+
 
 def commit_cache(pdp):
     first_page = True
@@ -84,7 +87,7 @@ def abort_cache(pdp):
     if os.path.exists(pdp.page_folder):
         shutil.rmtree(pdp.page_folder)
 
-def read_cache(pdp, overwrite=False):
+def read_cache(pdp):
     if pdp.cache_is_valid():  # which also checks that it exists
         with open(pdp.index, "r") as f:
             index_data = json.load(f)
@@ -95,11 +98,9 @@ def read_cache(pdp, overwrite=False):
         pdp.pages = index_data["pages"]
         return
 
-    if pdp.cache_exists() and not overwrite:
+    if pdp.cache_exists():
         raise FileExistsError("invalid cache exists. please abort the previous cache or set overwrite=True to continue.")
-    if pdp.cache_exists() and overwrite:
-        abort_cache(pdp)
-        read_cache(pdp)
+    raise FileNotFoundError("no cache found. build cache first.")
 
 def cache_is_valid(pdp):
     if not pdp.cache_exists():

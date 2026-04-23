@@ -97,23 +97,8 @@ def delete(pdp, key, allow_duplicates=False, key_col=None):
 
 
 def delete_by_sorted_key(pdp, key, allow_duplicates=False):
-    candidate_pages = []
+    candidate_pages = get_sorted_lookup_candidate_pages(pdp, key)
 
-    page_idx = pdp._find_page_index_binary(key)
-    if page_idx is not None:
-        candidate_pages.append(page_idx)
-
-    if page_idx is not None and page_idx - 1 >= 0:
-        prev_page = pdp.pages[page_idx - 1]
-        if str(prev_page["first"]) <= key <= str(prev_page["last"]):
-            candidate_pages.append(page_idx - 1)
-
-    if page_idx is not None and page_idx + 1 < len(pdp.pages):
-        next_page = pdp.pages[page_idx + 1]
-        if str(next_page["first"]) <= key <= str(next_page["last"]):
-            candidate_pages.append(page_idx + 1)
-
-    candidate_pages = sorted(set(candidate_pages))
     if not candidate_pages:
         return False
 
@@ -262,78 +247,28 @@ def delete_by_df(pdp, df, allow_duplicates=False):
 
 ### Lookup functions ###
 
-def lookup(pdp, key, key_col=None):
+def lookup(pdp, key, key_col=None, save_as=None):
     key = str(key)
     if key_col is None:
         key_col = pdp.sort_by if pdp.sort_by is not None else pdp.columns[0]
     elif key_col not in pdp.columns:
         raise ValueError("lookup key column not found in df")
 
+    # if we can binary search for it, do that
     if pdp.sort_by is not None and key_col == pdp.sort_by:
-        return lookup_by_sorted_key(pdp, key)
+        page_indexes = get_sorted_lookup_candidate_pages(pdp, key)
+    else:
+        page_indexes = None
 
-    return lookup_by_scan(pdp, key, key_col)
-
-
-def lookup_by_sorted_key(pdp, key):
-    candidate_pages = []
-
-    page_idx = pdp._find_page_index_binary(key)
-    if page_idx is not None:
-        candidate_pages.append(page_idx)
-
-    # looking at the page before
-    if page_idx is not None and page_idx - 1 >= 0:
-        prev_page = pdp.pages[page_idx - 1]
-        if str(prev_page["first"]) <= key <= str(prev_page["last"]):
-            candidate_pages.append(page_idx - 1)
-
-    # looking at the page after
-    if page_idx is not None and page_idx + 1 < len(pdp.pages):
-        next_page = pdp.pages[page_idx + 1]
-        if str(next_page["first"]) <= key <= str(next_page["last"]):
-            candidate_pages.append(page_idx + 1)
-
-    candidate_pages = sorted(set(candidate_pages))
-    if not candidate_pages:
-        return pd.DataFrame(columns=pdp.columns)
-
-    matches_by_page = []
-    total_matches = 0
-
-    # looking at all valid nearby pages
-    for candidate_idx in candidate_pages:
-        page_df = pdp._load_page(candidate_idx)
-        page_df[pdp.sort_by] = page_df[pdp.sort_by].astype(str)
-        matches = page_df[page_df[pdp.sort_by] == key]
-
-        if len(matches) > 0:
-            total_matches += len(matches)
-            matches_by_page.append(matches)
-
-    if total_matches == 0:
-        return pd.DataFrame(columns=pdp.columns)
-
-    return pd.concat(matches_by_page, ignore_index=True)
-
-
-def lookup_by_scan(pdp, key, key_col):
-    matches_by_page = []
-    total_matches = 0
-
-    for page_idx in range(len(pdp.pages)):
-        page_df = pdp._load_page(page_idx)
-        page_df[key_col] = page_df[key_col].astype(str)
-        matches = page_df[page_df[key_col] == key]
-
-        if len(matches) > 0:
-            total_matches += len(matches)
-            matches_by_page.append(matches)
-
-    if total_matches == 0:
-        return pd.DataFrame(columns=pdp.columns)
-
-    return pd.concat(matches_by_page, ignore_index=True)
+    return materialize_derived_build(
+        pdp = pdp,
+        save_as = save_as,
+        temp_suffix = "lookup_tmp",
+        sort_by = None,
+        columns = pdp.columns,
+        transform_page = lambda page_df: page_df[page_df[key_col].astype(str) == key].reset_index(drop=True),
+        page_indexes = page_indexes,
+    )
 
 
 ### Filter ###
@@ -402,8 +337,28 @@ def count(pdp, predicate=None):
 
 ### Helpers ###
 
+def get_sorted_lookup_candidate_pages(pdp, key):
+    candidate_pages = []
+
+    page_idx = pdp._find_page_index_binary(key)
+    if page_idx is not None:
+        candidate_pages.append(page_idx)
+
+    if page_idx is not None and page_idx - 1 >= 0:
+        prev_page = pdp.pages[page_idx - 1]
+        if str(prev_page["first"]) <= key <= str(prev_page["last"]):
+            candidate_pages.append(page_idx - 1)
+
+    if page_idx is not None and page_idx + 1 < len(pdp.pages):
+        next_page = pdp.pages[page_idx + 1]
+        if str(next_page["first"]) <= key <= str(next_page["last"]):
+            candidate_pages.append(page_idx + 1)
+
+    return sorted(set(candidate_pages))
+
+
 # Used for filter and project to save the build under a new name while it's being created
-def materialize_derived_build(pdp, save_as, temp_suffix, sort_by, columns, transform_page):
+def materialize_derived_build(pdp, save_as, temp_suffix, sort_by, columns, transform_page, page_indexes=None):
     if save_as is None:
         if not hasattr(pdp, "_temp_build_counter"):
             pdp._temp_build_counter = 0
@@ -420,7 +375,10 @@ def materialize_derived_build(pdp, save_as, temp_suffix, sort_by, columns, trans
 
     current_rows = []
 
-    for idx in range(len(pdp.pages)):
+    if page_indexes is None:
+        page_indexes = range(len(pdp.pages))
+
+    for idx in page_indexes:
         page_df = pdp._load_page(idx)
         if page_df.empty:
             continue
