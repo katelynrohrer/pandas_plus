@@ -62,7 +62,7 @@ def insert_by_sorted_key(pdp, row: Dict):
 
 def concat_insert(pdp, df, row):
     new_row_df = pd.DataFrame([row], columns=pdp.columns)
-    return  pd.concat([df, new_row_df], ignore_index=True)
+    return pd.concat([df, new_row_df], ignore_index=True)
 
 
 def insertion_sort_insert(pdp, df, row):
@@ -276,16 +276,45 @@ def lookup(pdp, key, key_col=None):
 
 
 def lookup_by_sorted_key(pdp, key):
+    candidate_pages = []
+
     page_idx = pdp._find_page_index_binary(key)
-    if page_idx is None:
+    if page_idx is not None:
+        candidate_pages.append(page_idx)
+
+    # looking at the page before
+    if page_idx is not None and page_idx - 1 >= 0:
+        prev_page = pdp.pages[page_idx - 1]
+        if str(prev_page["first"]) <= key <= str(prev_page["last"]):
+            candidate_pages.append(page_idx - 1)
+
+    # looking at the page after
+    if page_idx is not None and page_idx + 1 < len(pdp.pages):
+        next_page = pdp.pages[page_idx + 1]
+        if str(next_page["first"]) <= key <= str(next_page["last"]):
+            candidate_pages.append(page_idx + 1)
+
+    candidate_pages = sorted(set(candidate_pages))
+    if not candidate_pages:
         return pd.DataFrame(columns=pdp.columns)
 
-    page_df = pdp._load_page(page_idx)
-    page_df[pdp.sort_by] = page_df[pdp.sort_by].astype(str)
+    matches_by_page = []
+    total_matches = 0
 
-    matches = page_df[page_df[pdp.sort_by] == key].reset_index(drop=True)
+    # looking at all valid nearby pages
+    for candidate_idx in candidate_pages:
+        page_df = pdp._load_page(candidate_idx)
+        page_df[pdp.sort_by] = page_df[pdp.sort_by].astype(str)
+        matches = page_df[page_df[pdp.sort_by] == key]
 
-    return matches.reset_index(drop=True)
+        if len(matches) > 0:
+            total_matches += len(matches)
+            matches_by_page.append(matches)
+
+    if total_matches == 0:
+        return pd.DataFrame(columns=pdp.columns)
+
+    return pd.concat(matches_by_page, ignore_index=True)
 
 
 def lookup_by_scan(pdp, key, key_col):
@@ -347,6 +376,28 @@ def project(pdp, cols, save_as=None):
         columns = cols,
         transform_page = lambda page_df: page_df[cols].reset_index(drop=True),
     )
+
+
+### Count ###
+
+def count(pdp, predicate=None):
+    if predicate is not None and not callable(predicate):
+        raise TypeError("count expects predicate to be callable or None")
+
+    total = 0
+
+    for page_idx in range(len(pdp.pages)):
+        page_df = pdp._load_page(page_idx)
+        if page_df.empty:
+            continue
+
+        if predicate is None:
+            total += len(page_df)
+        else:
+            matches = page_df.apply(predicate, axis=1)
+            total += int(matches.astype(bool).sum())
+
+    return total
 
 
 ### Helpers ###

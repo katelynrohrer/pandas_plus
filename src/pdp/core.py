@@ -72,6 +72,9 @@ class PDplus:
     def filter(self, predicate):
         return operations.filter(self, predicate)
 
+    def count(self, predicate):
+        return operations.count(self, predicate)
+
     def make_snapshot(self, build_name, overwrite=False):
         return cache.make_snapshot(self, build_name, overwrite)
 
