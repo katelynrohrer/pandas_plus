@@ -35,6 +35,7 @@ class PDplus:
         build.set_sort_mode(self, sort, sort_col)
 
         self.pages = None
+        self._temp_build_counter = 0
 
 #### PUBLIC API ####
 
@@ -55,6 +56,9 @@ class PDplus:
 
     def read_cache(self, overwrite=False):
         return cache.read_cache(self, overwrite)
+
+    def close_project(self, save_as):
+        return cache.close_project(self, save_as)
 
     def insert(self, row: Dict):
         return operations.insert(self, row)

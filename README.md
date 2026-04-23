@@ -32,3 +32,6 @@ Docker uses the main environment for disk (to prevent significantly large docker
 
 There's a lot of overhead in pandas structure, I overestimated on how much space a file would need to avoid crashes
 E.g. the 200MB file is just on the cusp of sometimes too big, 800MB is definitely too big
+
+Reads current memory state to determine chunk size, but doesn't double check it on cache read (could be a problem later)
+Insert and delete modify in place, filter returns the new obj

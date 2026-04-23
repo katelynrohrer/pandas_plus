@@ -112,26 +112,63 @@ def cache_is_valid(pdp):
     index_build_name = index_data["build_name"]
     index_sort_by = index_data["sort_by"]
     index_columns = index_data["columns"]
+
     for page in pages:
         path = page["path"]
         expected_hash = page["hash"]
         if not os.path.exists(path):
             return False
+
         current_hash = hash_file(path)
         if expected_hash != current_hash:
             print(f"Page modified: {path}")
             return False
+
     if pdp.build_name != index_build_name:
         print(f"Build name does not match cache. Please abort existing cache to continue with this operation\n{pdp.build_name} != {index_build_name}")
         return False
+
     if pdp.columns != index_columns:
         print(f"Columns do not match cache. Please abort existing cache to continue with this operation\n{pdp.columns} != {index_columns}")
         return False
+
     if pdp.sort_by != index_sort_by:
         print(f"Sorting column does not match cache. Please abort existing cache to continue with this operation\n{pdp.sort_by} != {index_sort_by}")
         return False
+
     return True
 
+def close_project(pdp, save_as):
+    if save_as is not None and not isinstance(save_as, str):
+        raise ValueError("Please define a build to save before closing project, or pass None to close without saving.")
+
+    if isinstance(save_as, str):
+        build_path = os.path.join(pdp.build_root, save_as)
+        if not os.path.exists(build_path):
+            raise NameError("Build does not exist. Please check the name and try again.")
+
+        current_build_name = pdp.build_name
+        current_page_folder = pdp.page_folder
+        current_index = pdp.index
+        current_meta = pdp.meta
+        current_pages = pdp.pages
+
+        pdp.build_name = save_as
+        pdp.page_folder = build_path
+        pdp.index = os.path.join(build_path, "index.json")
+        pdp.meta = os.path.join(build_path, "meta.json")
+
+        pdp._read_cache()
+        pdp._commit_cache()
+
+        pdp.build_name = current_build_name
+        pdp.page_folder = current_page_folder
+        pdp.index = current_index
+        pdp.meta = current_meta
+        pdp.pages = current_pages
+
+    if os.path.exists(pdp.build_root):
+        shutil.rmtree(pdp.build_root)
 
 # Helper function to compute the hash of a file
 def hash_file(path):

@@ -309,29 +309,94 @@ def lookup_by_scan(pdp, key, key_col):
 
 ### Filter ###
 
-def filter(pdp, predicate):
+def filter(pdp, predicate, save_as=None):
     if not callable(predicate):
         raise TypeError("filter expects a callable (e.g., lambda x: ...)")
 
-    matches = []
+    return materialize_derived_build(
+        pdp = pdp,
+        save_as = save_as,
+        temp_suffix = "filter_tmp",
+        sort_by = pdp.sort_by,
+        columns = pdp.columns,
+        transform_page = lambda page_df: page_df[page_df.apply(predicate, axis=1)],
+    )
+
+
+### Project ###
+
+def project(pdp, cols, save_as=None):
+    if isinstance(cols, str):
+        cols = [cols]
+
+    if not cols:
+        raise ValueError("project requires at least one column")
+
+    missing = []
+    for col in cols:
+        if col not in pdp.columns:
+            missing.append(col)
+    if missing:
+        raise ValueError(f"project columns not found in df: {missing}")
+
+    return materialize_derived_build(
+        pdp = pdp,
+        save_as = save_as,
+        temp_suffix = "project_tmp",
+        sort_by = None,
+        columns = cols,
+        transform_page = lambda page_df: page_df[cols].reset_index(drop=True),
+    )
+
+
+### Helpers ###
+
+# Used for filter and project to save the build under a new name while it's being created
+def materialize_derived_build(pdp, save_as, temp_suffix, sort_by, columns, transform_page):
+    if save_as is None:
+        if not hasattr(pdp, "_temp_build_counter"):
+            pdp._temp_build_counter = 0
+        pdp._temp_build_counter += 1
+        base_name = getattr(pdp, "build_name", "build")
+        save_as = f"{base_name}__{temp_suffix}_{pdp._temp_build_counter}"
+
+    if not isinstance(save_as, str) or not save_as.strip():
+        raise ValueError("save_as must be a non-empty string")
+
+    new_pdp = pdp.__class__(pdp.file, sort_col=sort_by, build_name=save_as)
+    new_pdp.pages = []
+    new_pdp.columns = columns
+
+    current_rows = []
 
     for idx in range(len(pdp.pages)):
         page_df = pdp._load_page(idx)
         if page_df.empty:
             continue
 
-        filtered = page_df[page_df.apply(predicate, axis=1)]
-        matches.append(filtered)
+        transformed = transform_page(page_df)
+        if transformed.empty:
+            continue
 
-    if not matches:
-        return pd.DataFrame(columns=pdp.columns)
+        transformed_rows = transformed.to_dict(orient="records")
+        for row in transformed_rows:
+            current_rows.append(row)
 
-    return pd.concat(matches, ignore_index=True)
+            if len(current_rows) == new_pdp.page_row_capacity:
+                out_df = pd.DataFrame(current_rows, columns=new_pdp.columns)
+                new_page = new_pdp._write_page(out_df)
+                new_pdp.pages.append(new_page)
+                current_rows = []
 
+    if current_rows:
+        out_df = pd.DataFrame(current_rows, columns=new_pdp.columns)
+        new_page = new_pdp._write_page(out_df)
+        new_pdp.pages.append(new_page)
 
+    new_pdp._write_index(new_pdp.pages)
+    return new_pdp
 
-### Helpers ###
-
+# used to update the index
 def update_page_index(pdp, page_idx, page_df):
     if pdp.sort_by is None:
         pdp.pages[page_idx]["first"] = ""
