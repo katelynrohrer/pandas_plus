@@ -28,20 +28,6 @@ def estimate_row_size(file, sample=1000):
     return bytes_per_row
 
 
-
-def make_dfs(file):
-    size_limit = get_size_limit()
-
-    filesize = os.path.getsize(file)
-    if filesize < size_limit:
-        df = pd.read_csv(file, dtype=str)
-        return [df]
-    else:
-        row_size = estimate_row_size(file)
-        dfs = pd.read_csv(file, dtype=str, chunksize = int(size_limit/row_size) )
-        return dfs
-
-
 def lookup(file, key, key_col):
     # LIMITATION: assumes lookup matches will fit in memory
     size_limit = get_size_limit()
@@ -266,14 +252,8 @@ def count(file, predicate):
     return total
 
 
-
-
 def main():
-    dfs = make_dfs(file)
-    for df in dfs:
-        # pass
-        print(df)
-    del dfs
+    pass
 
 
 if __name__ == "__main__":
