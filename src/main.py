@@ -1,50 +1,45 @@
 
 import pdp
+import time
 import utils
+import phony_rows
+
+
+DATA_FILES = [
+    "data/small_song.csv",
+    "data/small_crime.csv",
+    "data/medium_crime.csv",
+    "data/medium_song.csv",
+    "data/large_crime.csv"
+    # "data/large_song.csv", # takes too long to test
+]
 
 
 def main():
-    # file1 = "data/medium_song.csv"
-    # df1 = pdp.PDplus(file1) # by default, sorts by first col
-    #
-    # if not df1.cache_is_valid():
-    #     df1.abort_cache()
-    #     df1.build_cache()
-    # else:
-    #     df1.read_cache()
-    #
-    # df1.print()
-    # print("\n\n\nINSERTING HERE\n\n\n")
-    # for i in range(100):
-    #     df1.insert(utils.new_row)
-    # df1.print()
-    # print("\n\n\nDELETING HERE\n\n\n")
-    # df1.delete(utils.new_row["id"], single=False)
-    #
-    # df1.print()
 
+    df = pdp.PDplus(DATA_FILES[4]) # by default, sorts by first col
 
-
-    file2 = "data/small_song.csv"
-    df2 = pdp.PDplus(file2, sort_col="song.id") # by default, sorts by first col
-    if not df2.cache_exists():
-        print(f"WARNING: no existing cache by name {df2.build_name}. Reloading from disk")
-    if not df2.cache_is_valid():
-        df2.abort_cache()
-        df2.build_cache()
+    if not df.cache_is_valid():
+        df.abort_cache()
+        df.build_cache()
     else:
-        df2.read_cache()
+        df.read_cache()
 
-    df2.print()
-    print(df2.filter(lambda x: x["song.year"] == "1991" and float(x["artist.hotttnesss"]) > 0.5))
-    # print("\n\n\nINSERTING HERE\n\n\n")
-    # for i in range(100):
-    #     df2.insert(utils.new_row2)
-    # df2.print()
-    # print("\n\n\nDELETING HERE\n\n\n")
-    # df2.delete(utils.new_row2["song.id"], single=False)
-    # df2.make_snapshot(build_name="insert")
-    # df2.print()
+    # # phony data. only need to know 'id': "0VENt14WVFyKtCmhHNLE7W",
+    # df.insert(phony_rows.medium_song_row)
+    # df.make_snapshot("inserted")
+    # df.print()
+    # df.delete("0VENt14WVFyKtCmhHNLE7W", single=True)
+    #
+    # df2 = df.filter(lambda x: x['danceability'] > 0.5, save_as="danceable")
+    #
+    # # df3 is now saved in a temp build
+    # df3 = df2.project(["id", "danceability", "name", "artists"])
+    # print(df3.count(lambda x: True)) # counts rows (everything is True)
+    #
+    # # default has no changes but this does close all other builds
+    # df.close_project("default")
+
 
 
 

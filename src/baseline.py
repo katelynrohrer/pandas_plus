@@ -1,26 +1,51 @@
 
 import os
-import utils
 import pandas as pd
+
+DATA_FILES = [
+    "data/small_song.csv",
+    "data/small_crime.csv",
+    "data/medium_crime.csv",
+    "data/medium_song.csv",
+    "data/large_crime.csv",
+    # "data/large_song.csv", # takes too long to test
+]
+
+def get_size_limit():
+    mem, _ = resource.getrlimit(resource.RLIMIT_AS)  # virtual limits (e.g. the 1gb limit)
+
+    if mem == -1:
+        # in real use case, this would always be used by default
+        mem = psutil.virtual_memory().available # physical limits (e.g container capacity)
+
+    size_limit = mem / 15  # pandas typically needs 2-5x the space of the file. we're being conservative here
+
+    return size_limit
+
+def estimate_row_size(file, sample=1000):
+    sample_df = pd.read_csv(file, dtype=str, nrows=sample)
+    bytes_per_row = sample_df.memory_usage(deep=True).sum() / len(sample_df)
+    return bytes_per_row
+
 
 
 def make_dfs(file):
-    size_limit = utils.get_size_limit()
+    size_limit = get_size_limit()
 
     filesize = os.path.getsize(file)
     if filesize < size_limit:
         df = pd.read_csv(file, dtype=str)
         return [df]
     else:
-        row_size = utils.estimate_row_size(file)
+        row_size = estimate_row_size(file)
         dfs = pd.read_csv(file, dtype=str, chunksize = int(size_limit/row_size) )
         return dfs
 
 
 def lookup(file, key, key_col):
     # LIMITATION: assumes lookup matches will fit in memory
-    size_limit = utils.get_size_limit()
-    row_size = utils.estimate_row_size(file)
+    size_limit = get_size_limit()
+    row_size = estimate_row_size(file)
     chunk_size = max(1, int(size_limit / row_size))
 
     matches = []
@@ -46,8 +71,8 @@ def sorted_insert(file, row, sorted_col):
     # assumes the file is already sorted!!
     # **requires a temp file**
     # not sure if this is true baseline in this case
-    size_limit = utils.get_size_limit()
-    row_size = utils.estimate_row_size(file)
+    size_limit = get_size_limit()
+    row_size = estimate_row_size(file)
     chunk_size = max(1, int(size_limit / row_size))
 
     folder = os.path.dirname(file)
@@ -85,8 +110,8 @@ def sorted_insert(file, row, sorted_col):
 
 def sort(file, col):
     # requires temp files because sorting a CSV larger than memory cannot be done in-place
-    size_limit = utils.get_size_limit()
-    row_size = utils.estimate_row_size(file)
+    size_limit = get_size_limit()
+    row_size = estimate_row_size(file)
     chunk_size = max(1, int(size_limit / row_size))
 
     folder = os.path.dirname(file)
@@ -150,8 +175,8 @@ def delete(file, key, key_col, single=True):
     # requires a temp file because deleting from a CSV cannot be done in-place
     # **requires a temp file**
     # not sure if this is true baseline in this case
-    size_limit = utils.get_size_limit()
-    row_size = utils.estimate_row_size(file)
+    size_limit = get_size_limit()
+    row_size = estimate_row_size(file)
     chunk_size = max(1, int(size_limit / row_size))
 
     folder = os.path.dirname(file)
@@ -197,8 +222,8 @@ def delete(file, key, key_col, single=True):
 
 def filter(file, predicate):
     # LIMITATION: assumes filter results will fit in memory
-    size_limit = utils.get_size_limit()
-    row_size = utils.estimate_row_size(file)
+    size_limit = get_size_limit()
+    row_size = estimate_row_size(file)
     chunk_size = max(1, int(size_limit / row_size))
 
     matches = []
@@ -215,8 +240,8 @@ def filter(file, predicate):
 
 def project(file, cols):
     # LIMITATION: assumes projected result will fit in memory
-    size_limit = utils.get_size_limit()
-    row_size = utils.estimate_row_size(file)
+    size_limit = get_size_limit()
+    row_size = estimate_row_size(file)
     chunk_size = max(1, int(size_limit / row_size))
 
     projected = []
@@ -230,8 +255,8 @@ def project(file, cols):
 
 
 def count(file, predicate):
-    size_limit = utils.get_size_limit()
-    row_size = utils.estimate_row_size(file)
+    size_limit = get_size_limit()
+    row_size = estimate_row_size(file)
     chunk_size = max(1, int(size_limit / row_size))
 
     total = 0
@@ -241,20 +266,14 @@ def count(file, predicate):
     return total
 
 
-def file_main(file):
+
+
+def main():
     dfs = make_dfs(file)
     for df in dfs:
         # pass
         print(df)
     del dfs
-
-
-def make_stepper():
-    return utils.make_stepper(file_main)
-
-
-def main():
-    utils.run_all(file_main)
 
 
 if __name__ == "__main__":
