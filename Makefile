@@ -5,6 +5,9 @@ IMAGE_NAME = pdp_container
 build:
 	docker build -t $(IMAGE_NAME) .
 
+get-data:
+	docker run --rm -it -v "$$(pwd)":/work -w /work $(IMAGE_NAME) bash -lc 'python3 -u src/get_data.py'
+
 
 run:
 	docker run --rm -it -v "$$(pwd)":/work -w /work $(IMAGE_NAME) bash -lc 'ulimit -v 1048576 && python3 -u src/main.py'

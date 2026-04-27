@@ -1,31 +1,41 @@
-# TODO test that this works correctly (I downloaded it manually + am on hotspot right now)
-import kagglehub
+
 import os
+import kagglehub
 
 DATA_DIR = "./data"
+KAGGLE_CACHE_DIR = os.path.join(DATA_DIR, "kaggle_cache")
+
 os.makedirs(DATA_DIR, exist_ok=True)
+os.makedirs(KAGGLE_CACHE_DIR, exist_ok=True)
+os.environ["KAGGLEHUB_CACHE"] = KAGGLE_CACHE_DIR
+
+
+
+
+def download_datasets(datasets):
+    for dataset in datasets:
+        path = kagglehub.dataset_download(dataset)
+        print("Path to dataset files:", path)
+
 
 # small files
-path = kagglehub.dataset_download("mexwell/10k-song-dataset", path=DATA_DIR)
-print("Path to dataset files:", path)
+download_datasets([
+    # small files
+    "mexwell/10k-song-dataset",
+    "sohier/crime-in-baltimore",
 
-path = kagglehub.dataset_download("sohier/crime-in-baltimore")
-print("Path to dataset files:", path)
+    # medium files
+    "abdullahmazari/crime-data-of-los-angeles-from-2020-to-2025",
+    "serkantysz/550k-spotify-songs-audio-lyrics-and-genres",
 
-
-# medium files
-
-path = kagglehub.dataset_download("abdullahmazari/crime-data-of-los-angeles-from-2020-to-2025", path=DATA_DIR)
-print("Path to dataset files:", path)
-
-path = kagglehub.dataset_download("serkantysz/550k-spotify-songs-audio-lyrics-and-genres", path=DATA_DIR)
-print("Path to dataset files:", path)
+    # large files
+    "aliafzal9323/los-angeles-crime-data-2020-2026",
+])
 
 
-# large files
-path = kagglehub.dataset_download("aliafzal9323/los-angeles-crime-data-2020-2026", path=DATA_DIR)
-print("Path to dataset files:", path)
+# attempted this one but data content was too large to test with
+# (took several hours to build each time)
 
-path = kagglehub.dataset_download("carlosgdcj/genius-song-lyrics-with-language-information", path=DATA_DIR)
-print("Path to dataset files:", path)
-
+# download_datasets([
+#     "carlosgdcj/genius-song-lyrics-with-language-information",
+# ])
