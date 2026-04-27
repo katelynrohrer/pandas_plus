@@ -5,26 +5,54 @@ import phony_rows
 
 
 DATA_FILES = [
-    "data/small_song.csv", # 1 chunk on 1GB memory
-    "data/small_crime.csv", # 1 chunk on 1GB memory
-    "data/medium_crime.csv",
-    "data/medium_song.csv",
+    "data/small_song.csv", # about 1 chunk on 1GB memory
+    "data/small_crime.csv", # about 1 chunk on 1GB memory
+    "data/medium_crime.csv", # about 32 chunks on 1GB memory
+    "data/medium_song.csv", # about 31 chunks on 1GB memory
 
     # these large files take several hours to sorted build
-    "data/large_song.csv", # 565 chunks on 1GB memory
-    "data/large_crime.csv", # 1029 chunks on 1GB memory
+    "data/large_song.csv", # about 566 chunks on 1GB memory
+    "data/large_crime.csv", # about 1030 chunks on 1GB memory
 ]
 
 
 def main():
+    file = DATA_FILES[4]
+    sort = True
+    build = False
+    crashed = False
 
-    df = pdp.PDplus(DATA_FILES[5]) # by default, sorts by first col
+    start = time.time()
+    df = pdp.PDplus(file, sort=sort, build_name="sorted_8gb") # by default, sorts by first col
 
-    if not df.cache_is_valid():
-        df.abort_cache()
-        df.build_cache()
-    else:
-        df.read_cache()
+    try:
+        if not df.cache_is_valid():
+            df.abort_cache()
+            df.build_cache()
+            build = True
+        else:
+            df.read_cache()
+    except:
+        crashed = True
+    finally:
+        end = time.time()
+
+        output = f"File: {file}\n" + \
+                 f"Sort: {sort}\n" + \
+                 f"Build: {build}\n" + \
+                 f"Time: {end - start:.2f} seconds\n"
+                 # f"Chunks Completed: \n"
+
+        if crashed:
+            output += f"Completed = False\nChunks Completed: \n\n"
+        else:
+            output += "\n"
+
+        print(output)
+
+        with open("./metrics/extra.txt", "a") as file:
+            file.write(output)
+
 
     # # phony data. only need to know 'id': "0VENt14WVFyKtCmhHNLE7W",
     # df.insert(phony_rows.medium_song_row)

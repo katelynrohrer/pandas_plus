@@ -40,10 +40,13 @@ Time: 1.35 seconds
 
 File: data/large_song.csv
 Sort: True
+Build: True
+Time: 3657.17 seconds
+
+File: data/large_song.csv
+Sort: True
 Build: False
-Time: 132.63 seconds
-Completed = False
-Chunks Completed: 14
+Time: 28.18 seconds
 
 File: data/large_crime.csv
 Sort: True
