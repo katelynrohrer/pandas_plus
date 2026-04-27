@@ -1,0 +1,53 @@
+File: data/small_song.csv
+Sort: True
+Build: True
+Time: 0.09 seconds
+
+File: data/small_song.csv
+Sort: True
+Build: False
+Time: 0.02 seconds
+
+File: data/small_crime.csv
+Sort: True
+Build: True
+Time: 0.74 seconds
+
+File: data/small_crime.csv
+Sort: True
+Build: False
+Time: 0.05 seconds
+
+File: data/medium_crime.csv
+Sort: True
+Build: True
+Time: 43.00 seconds
+
+File: data/medium_crime.csv
+Sort: True
+Build: False
+Time: 0.31 seconds
+
+File: data/medium_song.csv
+Sort: True
+Build: True
+Time: 109.23 seconds
+
+File: data/medium_song.csv
+Sort: True
+Build: False
+Time: 1.17 seconds
+
+File: data/large_song.csv
+Sort: True
+Build: False
+Time: 62.29 seconds
+Chunks Completed: 25
+
+File: data/large_crime.csv
+Sort: True
+Build: False
+Time: 69.80 seconds
+Chunks Completed: 50
+
+

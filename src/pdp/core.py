@@ -25,7 +25,7 @@ class PDplus:
         self.cache_root = os.path.join("tmp", "builds")
         os.makedirs(self.cache_root, exist_ok=True)
 
-        self.build_key = f"{self.basename}_{self.filesize}_{self.page_row_capacity}"
+        self.build_key = f"{self.basename}_{self.filesize}"
         self.build_root = os.path.join(self.cache_root, self.build_key)
         self.page_folder = os.path.join(self.build_root, self.build_name)
         self.index = os.path.join(self.page_folder, "index.json")
