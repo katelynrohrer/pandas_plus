@@ -42,14 +42,7 @@ def build_pages_unsorted(pdp):
     pages = []
     print("starting unsorted paged build...")
 
-    # estimating chunks
-    chunk_size = pdp.page_row_capacity
-    file_size = os.path.getsize(pdp.file)
-    num_rows = file_size // pdp.row_size
-    num_chunks = (num_rows + chunk_size - 1) // chunk_size
-    print(f"estimated number of chunks: {num_chunks}")
-
-    for chunk_num, chunk in enumerate(pd.read_csv(pdp.file, dtype=str, chunksize=chunk_size)):
+    for chunk_num, chunk in enumerate(pd.read_csv(pdp.file, dtype=str, chunksize=pdp.page_row_capacity)):
         chunk = chunk[pdp.columns]
         print(f"processing chunk {chunk_num}...")
 
@@ -80,12 +73,7 @@ def build_pages_sorted(pdp, attempt=1):
     pdp.pages = [page]
     pdp._write_index(pdp.pages)
 
-    # estimating chunks
     chunk_size = pdp.page_row_capacity // attempt
-    file_size = os.path.getsize(pdp.file)
-    num_rows = file_size // pdp.row_size
-    num_chunks = (num_rows + chunk_size - 1) // chunk_size
-    print(f"estimated number of chunks: {num_chunks}")
 
     for chunk_num, chunk in enumerate(pd.read_csv(pdp.file, dtype=str, chunksize=chunk_size)):
         chunk = chunk[pdp.columns]
