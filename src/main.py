@@ -1,23 +1,24 @@
 
 import pdp
 import time
-import utils
 import phony_rows
 
 
 DATA_FILES = [
-    "data/small_song.csv",
-    "data/small_crime.csv",
+    "data/small_song.csv", # 1 chunk on 1GB memory
+    "data/small_crime.csv", # 1 chunk on 1GB memory
     "data/medium_crime.csv",
     "data/medium_song.csv",
-    "data/large_crime.csv"
-    # "data/large_song.csv", # takes too long to test
+
+    # these large files take several hours to sorted build
+    "data/large_song.csv", # 565 chunks on 1GB memory
+    "data/large_crime.csv", # 1029 chunks on 1GB memory
 ]
 
 
 def main():
 
-    df = pdp.PDplus(DATA_FILES[4]) # by default, sorts by first col
+    df = pdp.PDplus(DATA_FILES[5]) # by default, sorts by first col
 
     if not df.cache_is_valid():
         df.abort_cache()
