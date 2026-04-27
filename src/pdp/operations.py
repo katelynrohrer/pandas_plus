@@ -37,6 +37,11 @@ def insert_by_scan(pdp, row: Dict):
     pdp._write_index(pdp.pages)
 
 
+def concat_insert(pdp, df, row):
+    new_row_df = pd.DataFrame([row], columns=pdp.columns)
+    return pd.concat([df, new_row_df], ignore_index=True)
+
+
 def insert_by_sorted_key(pdp, row: Dict):
     row_value = str(row[pdp.sort_by])
 
@@ -58,11 +63,6 @@ def insert_by_sorted_key(pdp, row: Dict):
         update_page_index(pdp, page_idx, page_df)
 
     pdp._write_index(pdp.pages)
-
-
-def concat_insert(pdp, df, row):
-    new_row_df = pd.DataFrame([row], columns=pdp.columns)
-    return pd.concat([df, new_row_df], ignore_index=True)
 
 
 def insertion_sort_insert(pdp, df, row):

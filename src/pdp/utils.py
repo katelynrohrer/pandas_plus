@@ -15,7 +15,7 @@ def get_size_limit():
         # in real use case, this would always be used by default
         mem = psutil.virtual_memory().available # physical limits (e.g container capacity)
 
-    size_limit = mem / 15  # pandas typically needs 2-5x the space of the file. we're being conservative here
+    size_limit = mem / 20  # pandas typically needs 2-5x the space of the file. we're being conservative here
 
     return size_limit
 

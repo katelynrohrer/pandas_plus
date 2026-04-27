@@ -1,4 +1,3 @@
-
 import os
 import json
 import shutil
@@ -6,7 +5,7 @@ import pandas as pd
 import hashlib
 
 
-def write_index(pdp, pages):
+def write_index(pdp, pages, complete=True):
     os.makedirs(pdp.page_folder, exist_ok=True)
     with open(pdp.index, "w") as f:
         pages_with_hash = []
@@ -19,6 +18,7 @@ def write_index(pdp, pages):
             "build_name": pdp.build_name,
             "sort_by": pdp.sort_by,
             "columns": pdp.columns,
+            "complete": complete,
             "pages": pages_with_hash
         }, f)
 
@@ -30,7 +30,7 @@ def build_cache(pdp, overwrite=False):
         pdp.abort_cache()
 
     pdp._build_pages()
-    pdp._write_index(pdp.pages)
+    pdp._write_index(pdp.pages, complete=True)
 
 
 def commit_cache(pdp):
@@ -76,7 +76,7 @@ def make_snapshot(pdp, build_name, overwrite=False):
     temp_index, pdp.index = pdp.index, new_index
     temp_meta, pdp.meta = pdp.meta, new_meta
 
-    write_index(pdp, new_pages)
+    write_index(pdp, new_pages, complete=True)
 
     pdp.build_name, temp_build_name = temp_build_name, pdp.build_name
     pdp.page_folder, temp_page_folder = temp_page_folder, pdp.page_folder
@@ -86,6 +86,18 @@ def make_snapshot(pdp, build_name, overwrite=False):
 def abort_cache(pdp):
     if os.path.exists(pdp.page_folder):
         shutil.rmtree(pdp.page_folder)
+
+
+# Remove all folders inside the build_root directory.
+def clear_all_temp(pdp):
+    if os.path.exists(pdp.build_root):
+        for name in os.listdir(pdp.build_root):
+            if "tmp" not in name.split("__")[-1]:
+                continue
+
+            path = os.path.join(pdp.build_root, name)
+            if os.path.isdir(path):
+                shutil.rmtree(path)
 
 def read_cache(pdp):
     if pdp.cache_is_valid():  # which also checks that it exists
@@ -99,7 +111,7 @@ def read_cache(pdp):
         return
 
     if pdp.cache_exists():
-        raise FileExistsError("invalid cache exists. please abort the previous cache or set overwrite=True to continue.")
+        raise FileExistsError("invalid cache exists. please abort the previous cache to continue.")
     raise FileNotFoundError("no cache found. build cache first.")
 
 def cache_is_valid(pdp):
@@ -113,6 +125,12 @@ def cache_is_valid(pdp):
     index_build_name = index_data["build_name"]
     index_sort_by = index_data["sort_by"]
     index_columns = index_data["columns"]
+
+    index_complete = index_data.get("complete", False)
+
+    if not index_complete:
+        print("Cache build did not complete. Please abort the previous cache to continue with this operation.")
+        return False
 
     for page in pages:
         path = page["path"]

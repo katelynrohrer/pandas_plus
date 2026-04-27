@@ -1,3 +1,4 @@
+
 import os
 from typing import Dict
 import pandas as pd
@@ -45,7 +46,6 @@ class PDplus:
         # In most cases, cache_is_valid is preferred to use as it does both.
         if os.path.exists(self.index):
             return True
-        print(f"WARNING: no existing cache by name {self.build_name}. Reloading from disk")
         return False
 
     def cache_is_valid(self):
@@ -73,6 +73,17 @@ class PDplus:
         # Reads the existing cache for this build.
         # If no cache exists or the cache is invalid, it will raise an error.
         cache.read_cache(self)
+
+    def make_snapshot(self, build_name, overwrite=False):
+        # Creates a manual save of the current build. Used as a checkpoint
+        # for later work to continue from. Does not return the new build.
+        # Instead, work will continue on the current build.
+        cache.make_snapshot(self, build_name, overwrite)
+
+    def clear_all_temp(self):
+        # Deletes all automatic temporary saves that were created as a result
+        # of certain operations (e.g. filter)
+        cache.clear_all_temp(self)
 
     def close_project(self, save_as):
         # Closes the entire project folder, including all builds.
@@ -129,11 +140,6 @@ class PDplus:
         # Returns the integer count.
         return operations.count(self, predicate)
 
-    def make_snapshot(self, build_name, overwrite=False):
-        # Creates a manual save of the current build. Used as a checkpoint
-        # for later work to continue from. Does not return the new build.
-        # Instead, work will continue on the current build.
-        cache.make_snapshot(self, build_name, overwrite)
 
     def print(self):
         # Prints out the current state of the pdp, page by page.
@@ -150,8 +156,8 @@ class PDplus:
     def _sort_df(self, df):
         return build.sort_df(self, df)
 
-    def _write_index(self, pages):
-        return cache.write_index(self, pages)
+    def _write_index(self, pages, complete=True):
+        return cache.write_index(self, pages, complete)
 
     def _insert_by_sorted_key(self, row):
         return operations.insert_by_sorted_key(self, row)

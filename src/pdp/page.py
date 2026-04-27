@@ -36,7 +36,10 @@ def write_page(pdp, df, idx=None):
         return {"path": filename, "first": "", "last": ""}
 
     first, last = page_bounds(pdp, df)
-    filename = page_filename(pdp, first, last)
+    if pdp.sort_by:
+        filename = page_filename(pdp, first, last)
+    else:
+        filename = os.path.join(pdp.page_folder, f"page_{idx}.pickle")
     os.makedirs(pdp.page_folder, exist_ok=True)
     pd.to_pickle(df, filename)
     return {"path": filename, "first": first, "last": last}
