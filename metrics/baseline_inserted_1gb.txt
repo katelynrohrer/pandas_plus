@@ -1,0 +1,37 @@
+File: data/small_song_sorted.csv
+Inserted: 0
+Time: 112.68 ms
+
+File: data/small_song_sorted.csv
+Inserted: 0.5
+Time: 116.30 ms
+
+File: data/small_song_sorted.csv
+Inserted: 1.1
+Time: 111.67 ms
+
+File: data/small_crime_sorted.csv
+Inserted: 01/01/2011
+Time: 1388.50 ms
+
+File: data/small_crime_sorted.csv
+Inserted: 06/15/2014
+Time: 1383.61 ms
+
+File: data/small_crime_sorted.csv
+Inserted: 12/31/2017
+Time: 1365.08 ms
+
+File: data/medium_crime_sorted.csv
+Inserted: 0010304468
+Time: 8561.61 ms
+
+File: data/medium_crime_sorted.csv
+Inserted: 200105215
+Time: 8862.83 ms
+
+File: data/medium_crime_sorted.csv
+Inserted: 262104036
+Time: 9191.99 ms
+
+

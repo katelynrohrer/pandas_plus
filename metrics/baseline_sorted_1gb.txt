@@ -1,0 +1,12 @@
+File: data/small_song.csv
+Sort: True
+Time: 8.88 seconds
+
+File: data/small_crime.csv
+Sort: True
+Time: 153.40 seconds
+
+File: data/medium_crime.csv
+Sort: True
+Time: 1459.65 seconds
+

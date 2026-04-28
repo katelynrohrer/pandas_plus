@@ -22,7 +22,7 @@ def main():
 
     start = time.time()
 
-    file = DATA_FILES[0]
+    file = DATA_FILES[3]
 
     mem, _ = resource.getrlimit(resource.RLIMIT_AS)  # virtual limits (e.g. the 1gb limit)
     if mem == -1:
@@ -51,6 +51,7 @@ def main():
         columns = pd.read_csv(file, dtype=str, nrows=0).columns
 
         for i, df in enumerate(pd.read_csv(file, dtype=str, chunksize=chunk_size)):
+            print(f"processing chunk {i}...")
             run_file = os.path.join(folder, f".{name}.run_{i}.tmp")
             df = df.sort_values(by=col, kind="stable").reset_index(drop=True)
             df.to_csv(run_file, index=False)
@@ -67,6 +68,7 @@ def main():
 
         with open(output_file, "w", newline="") as out:
             pd.DataFrame(columns=columns).to_csv(out, index=False)
+            rows_written = 0
 
             while any(row is not None for row in current_rows):
                 min_idx = None
@@ -82,6 +84,10 @@ def main():
                         min_idx = i
 
                 current_rows[min_idx].to_csv(out, header=False, index=False)
+                rows_written += 1
+
+                if rows_written % 10000 == 0:
+                    print(f"merged {rows_written} rows...")
 
                 try:
                     current_rows[min_idx] = next(readers[min_idx])

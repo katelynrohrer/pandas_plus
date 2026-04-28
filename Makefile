@@ -22,5 +22,9 @@ run-baseline:
 run-baseline-sort:
 	docker run --rm -it -v "$$(pwd)":/work -w /work $(IMAGE_NAME) bash -lc 'ulimit -v 1048576 && python3 -u src/baseline/sort.py'
 
+run-baseline-insert:
+	docker run --rm -it -v "$$(pwd)":/work -w /work $(IMAGE_NAME) bash -lc 'ulimit -v 1048576 && python3 -u src/baseline/insert.py'
+
+
 run-baseline-full:
 	docker run --rm -it -v "$$(pwd)":/work -w /work $(IMAGE_NAME) bash -lc 'python3 -u src/baseline.py'

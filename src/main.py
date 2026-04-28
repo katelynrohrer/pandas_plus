@@ -18,12 +18,12 @@ DATA_FILES = [
 
 def main():
     file = DATA_FILES[4]
-    sort = True
+    sort = False
     build = False
     crashed = False
 
     start = time.time()
-    df = pdp.PDplus(file, sort=sort, build_name="sorted_8gb") # by default, sorts by first col
+    df = pdp.PDplus(file, sort=sort, build_name="unsorted_8gb") # by default, sorts by first col
 
     try:
         if not df.cache_is_valid():
@@ -50,7 +50,7 @@ def main():
 
         print(output)
 
-        with open("./metrics/extra.txt", "a") as file:
+        with open("./metrics/unsorted_8gb.txt", "a") as file:
             file.write(output)
 
 
