@@ -1,0 +1,61 @@
+File: data/small_song.csv
+Sort: True
+Build: False
+Time: 39.91 ms
+
+File: data/small_song.csv
+Sort: True
+Build: False
+Time: 38.86 ms
+
+File: data/small_song.csv
+Sort: True
+Build: False
+Time: 34.71 ms
+
+
+File: data/small_crime.csv
+Sort: True
+Build: False
+Time: 95.55 ms
+
+File: data/small_crime.csv
+Sort: True
+Build: False
+Time: 82.94 ms
+
+File: data/small_crime.csv
+Sort: True
+Build: False
+Time: 81.42 ms
+
+File: data/medium_crime.csv
+Sort: True
+Build: False
+Time: 462.21 ms
+
+File: data/medium_crime.csv
+Sort: True
+Build: False
+Time: 335.59 ms
+
+File: data/medium_crime.csv
+Sort: True
+Build: False
+Time: 334.47 ms
+
+File: data/medium_song.csv
+Sort: True
+Build: False
+Time: 1609.69 ms
+
+File: data/medium_song.csv
+Sort: True
+Build: False
+Time: 1252.23 ms
+
+File: data/medium_song.csv
+Sort: True
+Build: False
+Time: 1239.49 ms
+

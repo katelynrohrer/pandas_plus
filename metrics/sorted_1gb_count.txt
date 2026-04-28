@@ -1,0 +1,84 @@
+File: data/small_song.csv
+Sort: True
+Build: False
+Time: 339.72 ms
+Query: lambda x: float(x["artist.familiarity"]) >= 0.5
+Count: 6656
+
+File: data/small_song.csv
+Sort: True
+Build: False
+Time: 336.40 ms
+Query: lambda x: float(x["artist.familiarity"]) >= 0.5 and float(x["artist.familiarity"]) < 0.8
+Count: 5786
+
+File: data/small_song.csv
+Sort: True
+Build: False
+Time: 344.86 ms
+Query: lambda x: float(x["artist.familiarity"]) >= 0.5 and float(x["song.tempo"]) > 102
+Count: 4664
+
+File: data/small_crime.csv
+Sort: True
+Build: False
+Time: 5373.86 ms
+Query: lambda x: x["CrimeDate"].endswith("2012") and x["Inside/Outside"] == "I"
+Count: 25169
+
+File: data/small_crime.csv
+Sort: True
+Build: False
+Time: 5295.30 ms
+Query: lambda x: x["CrimeDate"].endswith("2012")
+Count: 49586
+
+File: data/small_crime.csv
+Sort: True
+Build: False
+Time: 5230.31 ms
+Query: lambda x: x["CrimeDate"].startswith("03/")
+Count: 22081
+
+File: data/medium_crime.csv
+Sort: True
+Build: False
+Time: 2907.61 ms
+Query: lambda x: float(x["DR_NO"]) >= 231109345
+Count: 251801
+
+File: data/medium_crime.csv
+Sort: True
+Build: False
+Time: 2905.94 ms
+Query: lambda x: x["DR_NO"].startswith("23")
+Count: 234262
+
+File: data/medium_crime.csv
+Sort: True
+Build: False
+Time: 3157.95 ms
+Query: lambda x: x["DR_NO"].startswith("23") and x["AREA"] == "20"
+Count: 11842
+
+File: data/medium_song.csv
+Sort: True
+Build: False
+Time: 3373.48 ms
+Query: lambda x: x["id"].startswith("6X")
+Count: 909
+
+File: data/medium_song.csv
+Sort: True
+Build: False
+Time: 3194.26 ms
+Query: lambda x: x["id"].startswith("7z")
+Count: 1149
+
+File: data/medium_song.csv
+Sort: True
+Build: False
+Time: 3126.73 ms
+Query: lambda x: x["id"].startswith("7z") and float(x["avg_artist_popularity"]) > 50
+Count: 513
+

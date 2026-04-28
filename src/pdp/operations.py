@@ -309,7 +309,7 @@ def project(pdp, cols, save_as=None):
         pdp = pdp,
         save_as = save_as,
         temp_suffix = "project_tmp",
-        sort_by = None,
+        sort_by = pdp.sort_by if pdp.sort_by in cols else None,
         columns = cols,
         transform_page = lambda page_df: page_df[cols].reset_index(drop=True),
     )
@@ -374,6 +374,7 @@ def materialize_derived_build(pdp, save_as, temp_suffix, sort_by, columns, trans
     new_pdp = pdp.__class__(pdp.file, sort_col=sort_by, build_name=save_as)
     new_pdp.pages = []
     new_pdp.columns = columns
+    new_pdp.sort_by = sort_by if sort_by in columns else None
 
     current_rows = []
 
