@@ -10,3 +10,7 @@ File: data/medium_crime.csv
 Sort: True
 Time: 1459.65 seconds
 
+File: data/medium_song.csv
+Sort: True
+Time: 771.52 seconds
+

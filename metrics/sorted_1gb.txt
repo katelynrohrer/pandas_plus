@@ -55,3 +55,10 @@ Sort: True
 Build: False
 Time: 203.10 minutes
 Chunks Completed: 360
+
+File: data/large_crime.csv
+Sort: True
+Build: False
+Time: 3228.27 seconds (53.80 minutes)
+Chunks Completed: 236
+

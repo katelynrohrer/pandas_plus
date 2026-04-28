@@ -9,19 +9,19 @@ DATA_FILES = [
     "data/small_song_sorted.csv",
     "data/small_crime_sorted.csv",
     "data/medium_crime_sorted.csv",
+    "data/medium_song_sorted.csv",
 
     # these do not exist yet
-    # "data/medium_song_sorted.csv",
     # "data/large_crime_sorted.csv",
     # "data/large_song_sorted.csv",
 ]
 
 
 def main():
-    char_inserted = "262104036"
+    char_inserted = "99999999999999999999999999999"
     start = time.time()
 
-    file = DATA_FILES[2]
+    file = DATA_FILES[3]
 
     mem, _ = resource.getrlimit(resource.RLIMIT_AS)  # virtual limits (e.g. the 1gb limit)
     if mem == -1:
@@ -85,7 +85,7 @@ def main():
 
     print(output)
 
-    with open("./metrics/baseline_inserted_1gb.txt", "a") as file:
+    with open("./metrics/baseline_1gb_insert.txt", "a") as file:
         file.write(output)
 
 if __name__ == "__main__":

@@ -113,7 +113,7 @@ def main():
 
     print(output)
 
-    with open("./metrics/sorted_baseline.txt", "a") as file:
+    with open("./metrics/baseline_1gb_sort.txt", "a") as file:
         file.write(output)
 
 if __name__ == "__main__":

@@ -34,4 +34,15 @@ File: data/medium_crime_sorted.csv
 Inserted: 262104036
 Time: 9191.99 ms
 
+File: data/medium_song_sorted.csv
+Inserted: 0
+Time: 27464.24 ms
+
+File: data/medium_song_sorted.csv
+Inserted: 1U3Fdm0aBsZn31cgbSdw6E
+Time: 24781.64 ms
+
+File: data/medium_song_sorted.csv
+Inserted: 99999999999999999999999999999
+Time: 22907.85 ms
 
