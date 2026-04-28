@@ -137,7 +137,6 @@ def remove_empty_pages(pdp):
 def load_page(pdp, idx):
     return pd.read_pickle(pdp.pages[idx]["path"])
 
-# todo icky func
 # helper function to binary search for correct page index
 def find_page_index_binary(pdp, value):
     if pdp.sort_by is None:

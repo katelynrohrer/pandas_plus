@@ -159,6 +159,6 @@ def sort_df(pdp, df):
         return df.reset_index(drop=True)
 
     if pdp.sort_by is None:
-        return df.reset_index(drop=True) # todo why?
+        return df.reset_index(drop=True)
 
     return df.sort_values(by=pdp.sort_by, kind="stable").reset_index(drop=True)

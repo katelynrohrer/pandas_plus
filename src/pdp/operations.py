@@ -82,11 +82,11 @@ def insertion_sort_insert(pdp, df, row):
 
 ### Delete functions ###
 
-def delete(pdp, key, allow_duplicates=False, key_col=None):
-    if isinstance(key, pd.DataFrame):
-        return delete_by_df(pdp, key, allow_duplicates)
+def delete(pdp, key_or_df, allow_duplicates=False, key_col=None):
+    if isinstance(key_or_df, pd.DataFrame):
+        return delete_by_df(pdp, key_or_df, allow_duplicates)
 
-    key = str(key)
+    key = str(key_or_df)
     if key_col is None:
         key_col = pdp.sort_by if pdp.sort_by is not None else pdp.columns[0]
     elif key_col not in pdp.columns:

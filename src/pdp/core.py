@@ -94,7 +94,7 @@ class PDplus:
     def insert(self, row: Dict):
         # Inserts a single row into the database.
         # If the pdp was created sorted, will use that sort to insert the row
-        # using a binary search (O(logN)). However, if the pdp is unsorted,
+        # using a binary search (O(logN) + M). However, if the pdp is unsorted,
         # will jump to the end and add row (O(1)).
         operations.insert(self, row)
 
@@ -104,7 +104,7 @@ class PDplus:
         # duplicates are also deleted. The column to delete by is by default
         # the column the df is sorted by, or the first column if no sort is defined.
         # Can also accept a df, which would delete all matching rows from the pdp.
-        # Deleting from sorted df using sorted key: O(log(N)) via binary search
+        # Deleting from sorted df using sorted key: O(log(N) + M) via binary search
         # Any other deletion requires O(n) per entry
         # Returns True if a delete occurred or False if not.
         return operations.delete(self, key_or_df, single, key_col)
