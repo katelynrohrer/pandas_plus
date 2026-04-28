@@ -17,57 +17,35 @@ DATA_FILES = [
 
 
 def main():
-    file = DATA_FILES[4]
+    file = DATA_FILES[0]
     sort = False
-    build = False
-    crashed = False
 
     start = time.time()
-    df = pdp.PDplus(file, sort=sort, build_name="unsorted_8gb") # by default, sorts by first col
 
-    try:
-        if not df.cache_is_valid():
-            df.abort_cache()
-            df.build_cache()
-            build = True
-        else:
-            df.read_cache()
-    except:
-        crashed = True
-    finally:
-        end = time.time()
+    df = pdp.PDplus(file, sort=True, build_name="sorted_1gb")
 
-        output = f"File: {file}\n" + \
-                 f"Sort: {sort}\n" + \
-                 f"Build: {build}\n" + \
-                 f"Time: {end - start:.2f} seconds\n"
-                 # f"Chunks Completed: \n"
+    if not df.cache_is_valid():
+        df.abort_cache()
+        df.build_cache()
+    else:
+        df.read_cache()
 
-        if crashed:
-            output += f"Completed = False\nChunks Completed: \n\n"
-        else:
-            output += "\n"
-
-        print(output)
-
-        with open("./metrics/unsorted_8gb.txt", "a") as file:
-            file.write(output)
+    row = {k: "item" for k in df.columns}
+    df.insert(row)
+    df.make_snapshot("sorted_insert_1gb")
 
 
-    # # phony data. only need to know 'id': "0VENt14WVFyKtCmhHNLE7W",
-    # df.insert(phony_rows.medium_song_row)
-    # df.make_snapshot("inserted")
-    # df.print()
-    # df.delete("0VENt14WVFyKtCmhHNLE7W", single=True)
-    #
-    # df2 = df.filter(lambda x: x['danceability'] > 0.5, save_as="danceable")
-    #
-    # # df3 is now saved in a temp build
-    # df3 = df2.project(["id", "danceability", "name", "artists"])
-    # print(df3.count(lambda x: True)) # counts rows (everything is True)
-    #
-    # # default has no changes but this does close all other builds
-    # df.close_project("default")
+    end = time.time()
+
+    output = f"File: {file}\n" + \
+             f"Sort: {sort}\n" + \
+             f"Build: False\n" + \
+             f"Time: {end - start:.2f} seconds\n\n"
+
+    print(output)
+
+    with open("./metrics/sorted_insert_1gb.txt", "a") as file:
+        file.write(output)
 
 
 
