@@ -1,7 +1,6 @@
 
 import pdp
 import time
-import phony_rows
 
 
 DATA_FILES = [
@@ -17,12 +16,14 @@ DATA_FILES = [
 
 
 def main():
+    source_build = "sorted_1gb"
+    func = "_lookup"
     file = DATA_FILES[0]
-    sort = False
+    sort = True
 
     start = time.time()
 
-    df = pdp.PDplus(file, sort=True, build_name="sorted_1gb")
+    df = pdp.PDplus(file, sort=True, build_name=source_build)
 
     if not df.cache_is_valid():
         df.abort_cache()
@@ -30,24 +31,26 @@ def main():
     else:
         df.read_cache()
 
-    row = {k: "item" for k in df.columns}
-    df.insert(row)
-    df.make_snapshot("sorted_insert_1gb")
-
+    df.lookup("0.5")
 
     end = time.time()
 
     output = f"File: {file}\n" + \
              f"Sort: {sort}\n" + \
              f"Build: False\n" + \
-             f"Time: {end - start:.2f} seconds\n\n"
+             f"Time: {(end - start) * 1000:.2f} ms\n\n"
 
     print(output)
 
-    with open("./metrics/sorted_insert_1gb.txt", "a") as file:
-        file.write(output)
+    with open(f"./metrics/{source_build + func}.txt", "a") as f:
+        f.write(output)
 
+    # df2 = pdp.PDplus(file, sort=True, build_name=source_build + func)
+    # df2.read_cache()
+    # df2.print()
 
+# middle = 3AJmjefnCKNq2Vtib5qQSE
+# end = 8zzwQwN3jNiK46B2M9kL2Q
 
 
 if __name__ == "__main__":

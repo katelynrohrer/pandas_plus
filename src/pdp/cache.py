@@ -53,7 +53,7 @@ def make_snapshot(pdp, build_name, overwrite=False):
     new_meta = os.path.join(new_page_folder, "meta.json")
 
     if os.path.exists(new_page_folder) and not overwrite:
-        raise FileExistsError("cache already exists for this build name. please choose another name or overwrite the existing cache.")
+        raise FileExistsError("Make Snapshot: cache already exists for this build name. please choose another name or overwrite the existing cache.")
     if os.path.exists(new_page_folder) and overwrite:
         shutil.rmtree(new_page_folder)
 
@@ -78,10 +78,10 @@ def make_snapshot(pdp, build_name, overwrite=False):
 
     write_index(pdp, new_pages, complete=True)
 
-    pdp.build_name, temp_build_name = temp_build_name, pdp.build_name
-    pdp.page_folder, temp_page_folder = temp_page_folder, pdp.page_folder
-    pdp.index, temp_index = temp_index, pdp.index
-    pdp.meta, temp_meta = temp_meta, pdp.meta
+    pdp.build_name = temp_build_name
+    pdp.page_folder = temp_page_folder
+    pdp.index = temp_index
+    pdp.meta = temp_meta
 
 def abort_cache(pdp):
     if os.path.exists(pdp.page_folder):

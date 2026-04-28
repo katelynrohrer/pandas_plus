@@ -1,5 +1,6 @@
 import gc
 import os
+import time
 import pandas as pd
 
 
@@ -31,7 +32,7 @@ def build_pages(pdp):
     attempt = 0
     try:
         build_pages_sorted(pdp)
-    except MemoryError:
+    except pd.errors.ParserError:
         print("Ran out of memory while building index. Retrying with smaller chunks.")
         pdp._write_index(pdp.pages, complete=False)
         attempt += 1
@@ -76,6 +77,7 @@ def build_pages_sorted(pdp, attempt=1):
     chunk_size = pdp.page_row_capacity // attempt
 
     for chunk_num, chunk in enumerate(pd.read_csv(pdp.file, dtype=str, chunksize=chunk_size)):
+        start = time.time()
         chunk = chunk[pdp.columns]
         updates = {}
         print(f"processing chunk {chunk_num}...")
@@ -130,6 +132,9 @@ def build_pages_sorted(pdp, attempt=1):
         gc.collect()
 
         pdp._write_index(pdp.pages)
+
+        end = time.time()
+        print(f"Time: {end - start} seconds")
 
     return pdp.pages
 

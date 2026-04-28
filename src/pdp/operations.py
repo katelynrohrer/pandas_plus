@@ -7,6 +7,8 @@ from bisect import bisect_right
 ### Insert functions ###
 
 def insert(pdp, row: Dict):
+    if type(row) != dict:
+        raise TypeError("Must insert a dictionary")
     if set(row.keys()) != set(pdp.columns):
         raise KeyError("New row must have the same columns as the rest of the df")
     elif pdp.sort_by is None:
