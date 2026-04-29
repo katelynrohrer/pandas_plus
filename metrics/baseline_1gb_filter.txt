@@ -1,0 +1,60 @@
+File: data/small_song_sorted.csv
+Predicate: lambda x: float(x["artist.familiarity"]) >= 0.5
+Found: True
+Time: 397.57 ms
+
+File: data/small_song_sorted.csv
+Predicate: lambda x: float(x["artist.familiarity"]) >= 0.5 and float(x["artist.familiarity"]) < 0.8
+Found: True
+Time: 404.39 ms
+
+File: data/small_song_sorted.csv
+Predicate: lambda x: float(x["artist.familiarity"]) >= 0.5 and float(x["song.tempo"]) > 102
+Found: True
+Time: 392.10 ms
+
+File: data/small_crime_sorted.csv
+Predicate: lambda x: x["CrimeDate"].startswith("03/")
+Found: True
+Time: 5589.73 ms
+
+File: data/small_crime_sorted.csv
+Predicate: lambda x: x["CrimeDate"].endswith("2012")
+Found: True
+Time: 5862.82 ms
+
+File: data/small_crime_sorted.csv
+Predicate: lambda x: x["CrimeDate"].endswith("2012") and x["Inside/Outside"] == "I"
+Found: True
+Time: 5500.67 ms
+
+File: data/medium_crime_sorted.csv
+Predicate: lambda x: float(x["DR_NO"]) >= 231109345
+Found: True
+Time: 31860.66 ms
+
+File: data/medium_crime_sorted.csv
+Predicate: lambda x: x["DR_NO"].startswith("23")
+Found: True
+Time: 32441.83 ms
+
+File: data/medium_crime_sorted.csv
+Predicate: lambda x: x["DR_NO"].startswith("23") and x["AREA"] == "20"
+Found: True
+Time: 30336.24 ms
+
+File: data/medium_song_sorted.csv
+Predicate: lambda x: x["id"].startswith("6X")
+Found: True
+Time: 22432.99 ms
+
+File: data/medium_song_sorted.csv
+Predicate: lambda x: x["id"].startswith("7z")
+Found: True
+Time: 20276.28 ms
+
+File: data/medium_song_sorted.csv
+Predicate: lambda x: x["id"].startswith("7z") and float(x["avg_artist_popularity"]) > 50
+Found: True
+Time: 19673.42 ms
+

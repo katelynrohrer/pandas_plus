@@ -1,0 +1,61 @@
+File: data/small_song_sorted.csv
+Looked up: 0.0
+Found: True
+Time: 47.88 ms
+
+File: data/small_song_sorted.csv
+Looked up: 0.50035171
+Found: True
+Time: 62.35 ms
+
+File: data/small_song_sorted.csv
+Looked up: 1.0
+Found: True
+Time: 64.51 ms
+
+File: data/small_crime_sorted.csv
+Looked up: 01/01/2012
+Found: True
+Time: 151.40 ms
+
+File: data/small_crime_sorted.csv
+Looked up: 06/15/2014
+Found: True
+Time: 268.46 ms
+
+File: data/small_crime_sorted.csv
+Looked up: 12/31/2016
+Found: True
+Time: 495.39 ms
+
+File: data/medium_crime_sorted.csv
+Looked up: 190101086
+Found: True
+Time: 109.63 ms
+
+File: data/medium_crime_sorted.csv
+Looked up: 220213250
+Found: True
+Time: 1293.19 ms
+
+File: data/medium_crime_sorted.csv
+Looked up: 251904061
+Found: True
+Time: 2575.82 ms
+
+
+File: data/medium_song_sorted.csv
+Looked up: 000RwtVtOYEHSjDoj6shff
+Found: True
+Time: 493.36 ms
+
+File: data/medium_song_sorted.csv
+Looked up: 3AJmjefnCKNq2Vtib5qQSE
+Found: True
+Time: 3989.40 ms
+
+File: data/medium_song_sorted.csv
+Looked up: 7zzwQwN3jNiK46B2M9kL2Q
+Found: True
+Time: 8009.54 ms
+

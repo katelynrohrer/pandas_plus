@@ -22,7 +22,7 @@ def main():
 
     start = time.time()
 
-    file = DATA_FILES[3]
+    file = DATA_FILES[4]
 
     mem, _ = resource.getrlimit(resource.RLIMIT_AS)  # virtual limits (e.g. the 1gb limit)
     if mem == -1:
