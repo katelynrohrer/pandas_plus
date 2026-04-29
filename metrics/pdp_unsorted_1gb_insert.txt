@@ -1,0 +1,30 @@
+File: data/medium_crime.csv
+Sort: False
+Build: False
+Time: 552.02 ms
+
+File: data/medium_crime.csv
+Sort: False
+Build: False
+Time: 467.58 ms
+
+File: data/medium_crime.csv
+Sort: False
+Build: False
+Time: 475.29 ms
+
+File: data/medium_song.csv
+Sort: False
+Build: False
+Time: 1658.29 ms
+
+File: data/medium_song.csv
+Sort: False
+Build: False
+Time: 1524.47 ms
+
+File: data/medium_song.csv
+Sort: False
+Build: False
+Time: 1519.50 ms
+

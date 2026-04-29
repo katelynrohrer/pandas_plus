@@ -147,9 +147,7 @@ def cache_is_valid(pdp):
         print(f"Build name does not match cache. Please abort existing cache to continue with this operation\n{pdp.build_name} != {index_build_name}")
         return False
 
-    if pdp.columns != index_columns:
-        print(f"Columns do not match cache. Please abort existing cache to continue with this operation\n{pdp.columns} != {index_columns}")
-        return False
+    pdp.columns = index_columns
 
     if pdp.sort_by != index_sort_by:
         print(f"Sorting column does not match cache. Please abort existing cache to continue with this operation\n{pdp.sort_by} != {index_sort_by}")

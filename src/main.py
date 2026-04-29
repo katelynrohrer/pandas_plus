@@ -16,14 +16,16 @@ DATA_FILES = [
 
 
 def main():
-    source_build = "sorted_1gb"
-    func = "_lookup"
-    file = DATA_FILES[0]
-    sort = True
+    source_build = "unsorted_1gb"
+    func = "_insert"
+    key = "8zzwQwN3jNiK46B2M9kL2Q"
+
+    file = DATA_FILES[3]
+    sort = False
 
     start = time.time()
 
-    df = pdp.PDplus(file, sort=True, build_name=source_build)
+    df = pdp.PDplus(file, sort=sort, build_name=source_build)
 
     if not df.cache_is_valid():
         df.abort_cache()
@@ -31,7 +33,8 @@ def main():
     else:
         df.read_cache()
 
-    df.lookup("0.5")
+    row = {k: key for k in df.columns}
+    df.insert(row)
 
     end = time.time()
 
@@ -42,16 +45,43 @@ def main():
 
     print(output)
 
-    with open(f"./metrics/{source_build + func}.txt", "a") as f:
+
+    with open(f"./metrics/pdp_{source_build + func}.txt", "a") as f:
         f.write(output)
 
-    # df2 = pdp.PDplus(file, sort=True, build_name=source_build + func)
-    # df2.read_cache()
-    # df2.print()
+# CRIMES
+# top = 200705253
+# middle = 221413100
+# end = 241804338
 
+# SONGS
+# top = 000RwtVtOYEHSjDoj6shff, 0VERkxkJX3OwQMBppqcbIA
 # middle = 3AJmjefnCKNq2Vtib5qQSE
 # end = 8zzwQwN3jNiK46B2M9kL2Q
+
+# File: data / medium_crime_sorted.csv
+# Predicate: lambda x: float(x["DR_NO"]) >= 231109345
+# Predicate: lambda x: x["DR_NO"].startswith("23")
+# Predicate: lambda x: x["DR_NO"].startswith("23") and x["AREA"] == "20"
+#
+# File: data / medium_song_sorted.csv
+# Predicate: lambda x: x["id"].startswith("6X")
+# Predicate: lambda x: x["id"].startswith("7z")
+# Predicate: lambda x: x["id"].startswith("7z") and float(x["avg_artist_popularity"]) > 50
 
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
+
+
+
+
+
+
+
+
