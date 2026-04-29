@@ -1,0 +1,25 @@
+File: data/medium_crime.csv
+Inserted: 0
+Time: 2.80 ms
+
+File: data/medium_crime.csv
+Inserted: 220716694
+Time: 2.78 ms
+
+File: data/medium_crime.csv
+Inserted: 252104017
+Time: 2.65 ms
+
+File: data/medium_song.csv
+Inserted: 0001piYJu94Ec4hJFytG5G
+Time: 3.25 ms
+
+File: data/medium_song.csv
+Inserted: 3reioH6nZ4rQCbscqVwJt4
+Time: 3.21 ms
+
+File: data/medium_song.csv
+Inserted: 7zzwQwN3jNiK46B2M9kL2Q
+Time: 3.04 ms
+
+

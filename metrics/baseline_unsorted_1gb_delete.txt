@@ -1,0 +1,24 @@
+File: data/medium_crime.csv
+Key: 220716694
+Time: 8655.96 ms
+
+File: data/medium_crime.csv
+Key: 252104017
+Time: 9092.25 ms
+
+File: data/medium_crime.csv
+Key: 200200759
+Time: 8709.11 ms
+
+File: data/medium_song.csv
+Key: 0001piYJu94Ec4hJFytG5G
+Time: 21543.10 ms
+
+File: data/medium_song.csv
+Key: 3reioH6nZ4rQCbscqVwJt4
+Time: 21777.31 ms
+
+File: data/medium_song.csv
+Key: 3reioH6nZ4rQCbscqVwJt4
+Time: 21114.56 ms
+
