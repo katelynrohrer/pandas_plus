@@ -1,0 +1,24 @@
+File: data/medium_crime.csv
+Predicate: lambda x: float(x["DR_NO"]) >= 231109345
+Time: 32451.58 ms
+
+File: data/medium_crime.csv
+Predicate: lambda x: x["DR_NO"].startswith("23")
+Time: 32410.80 ms
+
+File: data/medium_crime.csv
+Predicate: lambda x: x["DR_NO"].startswith("23") and x["AREA"] == "20"
+Time: 31368.07 ms
+
+File: data/medium_song.csv
+Predicate: lambda x: x["id"].startswith("6X")
+Time: 19445.64 ms
+
+File: data/medium_song.csv
+Predicate: lambda x: x["id"].startswith("7z")
+Time: 19253.27 ms
+
+File: data/medium_song.csv
+Predicate: lambda x: x["id"].startswith("7z") and float(x["avg_artist_popularity"]) > 50
+Time: 19555.38 ms
+

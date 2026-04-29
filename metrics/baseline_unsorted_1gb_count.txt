@@ -1,0 +1,18 @@
+File: data/medium_crime.csv
+Time: 29305.65 ms
+
+File: data/medium_crime.csv
+Time: 29479.32 ms
+
+File: data/medium_crime.csv
+Time: 29535.11 ms
+
+File: data/medium_song.csv
+Time: 18725.93 ms
+
+File: data/medium_song.csv
+Time: 18688.74 ms
+
+File: data/medium_song.csv
+Time: 18520.53 ms
+

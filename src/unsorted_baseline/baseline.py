@@ -179,35 +179,36 @@ def count(file, predicate):
 
 
 def main():
-    # 2 (crime) keys:
-    # 200200759, 220716694, 252104017
-    # 3 (song) keys:
-    # 0001piYJu94Ec4hJFytG5G, 3reioH6nZ4rQCbscqVwJt4, 7zzwQwN3jNiK46B2M9kL2Q
-    file = DATA_FILES[3]
-    key = "3reioH6nZ4rQCbscqVwJt4"
-    func = "_delete"
+    # File: data / medium_crime_sorted.csv
+    # Predicate: lambda x: float(x["DR_NO"]) >= 231109345
+    # Predicate: lambda x: x["DR_NO"].startswith("23")
+    # Predicate: lambda x: x["DR_NO"].startswith("23") and x["AREA"] == "20"
+    #
+    # File: data / medium_song_sorted.csv
+    # Predicate: lambda x: x["id"].startswith("6X")
+    # Predicate: lambda x: x["id"].startswith("7z")
+    # Predicate: lambda x: x["id"].startswith("7z") and float(x["avg_artist_popularity"]) > 50
 
-    columns = pd.read_csv(file, dtype=str, nrows=0).columns
+    file = DATA_FILES[3]
+    # key = "7zzwQwN3jNiK46B2M9kL2Q"
+    predicate = 'lambda x: x["id"].startswith("7z") and float(x["avg_artist_popularity"]) > 50'
+    func = "count"
+
+    # columns = pd.read_csv(file, dtype=str, nrows=0).columns
     # row = {col: key for col in columns}
 
-    # print(f"File: {file}")
-    # print(f"Inserted Key: {key}")
 
     start = time.time()
-    print(delete(file, key, columns[0], single=True))
+    print(count(file, eval(predicate)))
     end = time.time()
-    # print("Insert complete")
 
-    # deleted = delete(file, key, columns[0], single=True)
-    # print(f"Deleted Rows: {len(deleted)}")
 
     output = f"File: {file}\n" + \
-             f"Key: {key}\n" + \
              f"Time: {(end - start)*1000:.2f} ms\n\n"
 
     print(output)
 
-    with open(f"metrics/baseline_unsorted_1gb{func}.txt", "a") as f:
+    with open(f"metrics/baseline_unsorted_1gb_{func}.txt", "a") as f:
         f.write(output)
 
 
