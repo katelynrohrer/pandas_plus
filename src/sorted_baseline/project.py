@@ -33,13 +33,11 @@ def main():
     columns = sample_df.columns
     row_size = sample_df.memory_usage(deep=True).sum() / len(sample_df)
 
-    # choose subset of columns to project # TODO
-    projected_cols = list(columns[:3])
+    # choose subset of columns to project
+    # projected_cols = list(columns[0:5])
+    # projected_cols = list(columns[4:9])
+    projected_cols = list(columns[6:-2])
 
-    ## SORTING ##
-    # requires several temp files because
-    # sorting a CSV larger than memory
-    # cannot be done in-place
 
     ## PROJECT ##
     # ** requires one output file **

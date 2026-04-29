@@ -34,16 +34,10 @@ def main():
     row_size = sample_df.memory_usage(deep=True).sum() / len(sample_df)
     col = columns[0]
 
-    ## SORTING ##
-    # requires several temp files because
-    # sorting a CSV larger than memory
-    # cannot be done in-place
-
     ## SORTED LOOKUP ##
     chunk_size = max(1, int(size_limit / row_size))
 
     found = False
-    found_row = None
 
     for df in pd.read_csv(file, dtype=str, chunksize=chunk_size):
         if key_to_lookup <= df[col].iloc[-1]:
@@ -51,7 +45,6 @@ def main():
 
             if not matches.empty:
                 found = True
-                found_row = matches.iloc[0]
 
             break
 

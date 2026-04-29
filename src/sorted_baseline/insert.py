@@ -35,11 +35,6 @@ def main():
     row_size = sample_df.memory_usage(deep=True).sum() / len(sample_df)
     col = columns[0]
 
-    ## SORTING ##
-    # requires several temp files because
-    # sorting a CSV larger than memory
-    # cannot be done in-place
-
     ## SORTED INSERT ##
     # ** requires one temp file **
     row = {k: char_inserted for k in columns}

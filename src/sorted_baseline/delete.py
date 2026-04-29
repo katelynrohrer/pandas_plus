@@ -40,11 +40,6 @@ def main():
     name = os.path.basename(file)
     root, ext = os.path.splitext(name)
 
-    ## SORTING ##
-    # requires several temp files because
-    # sorting a CSV larger than memory
-    # cannot be done in-place
-
     ## SORTED DELETE ##
     # ** requires one temp file **
     output_file = os.path.join(folder, f"{root}_deleted{ext}")

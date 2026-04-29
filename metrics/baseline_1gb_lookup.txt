@@ -43,7 +43,6 @@ Looked up: 251904061
 Found: True
 Time: 2575.82 ms
 
-
 File: data/medium_song_sorted.csv
 Looked up: 000RwtVtOYEHSjDoj6shff
 Found: True

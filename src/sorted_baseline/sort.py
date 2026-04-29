@@ -33,7 +33,7 @@ def main():
     sample_df = pd.read_csv(file, dtype=str, nrows=1000)
     columns = sample_df.columns
     row_size = sample_df.memory_usage(deep=True).sum() / len(sample_df)
-    chunk_size = max(1, int(size_limit / row_size))
+    chunk_size = max(1, int(size_limit / row_size / 10))
 
     col = columns[0]
 

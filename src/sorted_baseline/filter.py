@@ -33,13 +33,7 @@ def main():
     sample_df = pd.read_csv(file, dtype=str, nrows=1000)
     columns = sample_df.columns
     row_size = sample_df.memory_usage(deep=True).sum() / len(sample_df)
-    col = columns[0]
     predicate = eval(predicate_str)
-
-    ## SORTING ##
-    # requires several temp files because
-    # sorting a CSV larger than memory
-    # cannot be done in-place
 
     ## FILTER ##
     chunk_size = max(1, int(size_limit / row_size))

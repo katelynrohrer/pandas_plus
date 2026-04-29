@@ -18,7 +18,7 @@ DATA_FILES = [
 
 
 def main():
-    predicate_str = 'lambda x: x[]'
+    predicate_str = 'lambda x: x["id"].startswith("7z") and float(x["avg_artist_popularity"]) > 50'
     start = time.time()
 
     file = DATA_FILES[3]
@@ -34,11 +34,6 @@ def main():
     col = columns[0]
 
     predicate = eval(predicate_str)
-
-    ## SORTING ##
-    # requires several temp files because
-    # sorting a CSV larger than memory
-    # cannot be done in-place
 
     ## COUNT ##
     chunk_size = max(1, int(size_limit / row_size))

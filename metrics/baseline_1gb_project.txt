@@ -1,0 +1,48 @@
+File: data/small_song_sorted.csv
+Projected Columns: ['artist.familiarity', 'artist.hotttnesss', 'artist.id', 'artist.latitude', 'artist.location']
+Time: 125.05 ms
+
+File: data/small_song_sorted.csv
+Projected Columns: ['artist.familiarity', 'artist.hotttnesss', 'artist.id', 'artist.latitude', 'artist.location', 'artist.longitude', 'artist.name', 'artist.similar', 'artist.terms', 'artist.terms_freq', 'release.id', 'release.name', 'song.artist_mbtags', 'song.artist_mbtags_count', 'song.bars_confidence', 'song.bars_start', 'song.beats_confidence', 'song.beats_start', 'song.duration', 'song.end_of_fade_in', 'song.hotttnesss', 'song.id', 'song.key', 'song.key_confidence', 'song.loudness', 'song.mode', 'song.mode_confidence', 'song.start_of_fade_out', 'song.tatums_confidence', 'song.tatums_start', 'song.tempo', 'song.time_signature', 'song.time_signature_confidence', 'song.title']
+Time: 194.08 ms
+
+File: data/small_song_sorted.csv
+Projected Columns: ['artist.name', 'artist.similar', 'artist.terms', 'artist.terms_freq', 'release.id', 'release.name', 'song.artist_mbtags', 'song.artist_mbtags_count', 'song.bars_confidence', 'song.bars_start', 'song.beats_confidence', 'song.beats_start', 'song.duration', 'song.end_of_fade_in', 'song.hotttnesss', 'song.id', 'song.key', 'song.key_confidence', 'song.loudness', 'song.mode', 'song.mode_confidence', 'song.start_of_fade_out', 'song.tatums_confidence', 'song.tatums_start', 'song.tempo', 'song.time_signature', 'song.time_signature_confidence']
+Time: 137.38 ms
+
+File: data/small_crime_sorted.csv
+Projected Columns: ['CrimeDate', 'CrimeTime', 'CrimeCode', 'Location', 'Description']
+Time: 1163.26 ms
+
+File: data/small_crime_sorted.csv
+Projected Columns: ['Description', 'Inside/Outside', 'Weapon', 'Post', 'District']
+Time: 986.73 ms
+
+File: data/small_crime_sorted.csv
+Projected Columns: ['Weapon', 'Post', 'District', 'Neighborhood', 'Longitude', 'Latitude', 'Location 1']
+Time: 1450.77 ms
+
+File: data/medium_crime_sorted.csv
+Projected Columns: ['DR_NO', 'Date Rptd', 'DATE OCC', 'TIME OCC', 'AREA']
+Time: 7090.73 ms
+
+File: data/medium_crime_sorted.csv
+Projected Columns: ['AREA', 'AREA NAME', 'Rpt Dist No', 'Part 1-2', 'Crm Cd']
+Time: 5248.24 ms
+
+File: data/medium_crime_sorted.csv
+Projected Columns: ['Rpt Dist No', 'Part 1-2', 'Crm Cd', 'Crm Cd Desc', 'Mocodes', 'Vict Age', 'Vict Sex', 'Vict Descent', 'Premis Cd', 'Premis Desc', 'Weapon Used Cd', 'Weapon Desc', 'Status', 'Status Desc', 'Crm Cd 1', 'Crm Cd 2', 'Crm Cd 3', 'Crm Cd 4', 'LOCATION', 'Cross Street']
+Time: 10852.23 ms
+
+File: data/medium_song_sorted.csv
+Projected Columns: ['id', 'name', 'album_name', 'artists', 'danceability']
+Time: 14966.21 ms
+
+File: data/medium_song_sorted.csv
+Projected Columns: ['danceability', 'energy', 'key', 'loudness', 'mode']
+Time: 10363.47 ms
+
+File: data/medium_song_sorted.csv
+Projected Columns: ['key', 'loudness', 'mode', 'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo', 'duration_ms', 'lyrics', 'year', 'genre', 'popularity', 'total_artist_followers', 'avg_artist_popularity']
+Time: 36600.13 ms
+
